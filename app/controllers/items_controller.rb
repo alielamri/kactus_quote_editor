@@ -4,6 +4,7 @@ class ItemsController < ApplicationController
   before_action :check_quote_not_validated, only: [:create, :update, :destroy]
 
   def create
+    puts "create item #{params.inspect}"
     @item = @quote.items.build(item_params)
     if @item.save
       redirect_to @quote, notice: 'Item was successfully added.'
@@ -43,6 +44,6 @@ class ItemsController < ApplicationController
   end
 
   def check_quote_not_validated
-    redirect_to @quote, alert: 'Cannot modify items in a validated quote.' unless @quote.draft?
+    redirect_to @quote, alert: 'Cannot modify items in a validated quote.' if @quote.draft? == false
   end
 end

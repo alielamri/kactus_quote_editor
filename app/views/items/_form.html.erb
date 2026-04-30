@@ -13,8 +13,8 @@
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div>
-        <%= form.label :unit_price, class: 'block text-sm font-semibold text-gray-900 mb-1' %>
-        <%= form.number_field :unit_price, step: 0.01, min: 0, placeholder: '0.00', class: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' %>
+        <%= form.label :unit_price, 'Unit Price (€)', class: 'block text-sm font-semibold text-gray-900 mb-1' %>
+        <%= form.number_field :unit_price, step: 0.01, min: 0, placeholder: '50.99', class: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' %>
       </div>
       <div>
         <%= form.label :vat_rate, class: 'block text-sm font-semibold text-gray-900 mb-1' %>
