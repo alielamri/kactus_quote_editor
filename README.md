@@ -385,6 +385,28 @@ export PGHOST=localhost
 …or update `config/database.yml` to set `host: localhost` for `development:` and
 `test:`.
 
+### GitHub shows an empty README on the repository homepage
+
+GitHub **only** renders the markdown file named **`README.md` at the repository
+root** on your **default branch** (`main` vs `master`). Checklist:
+
+1. **Push your local commits** — if nothing was pushed after the README rewrite,
+   GitHub still shows whatever was there before (often an empty file):
+
+   ```bash
+   git remote -v                    # ensure origin points at your GitHub repo
+   git push -u origin main         # or your branch name
+   ```
+
+2. **Default branch** — in GitHub: **Settings → General → Default branch** must
+   match the branch that contains `README.md` (usually `main`).
+
+3. **Repository root vs subfolder** — if the Git remote tracks a **parent**
+   folder (e.g. `Desktop/KactusTest`) while the full documentation lives only in
+   `kactus_quote_editor/README.md`, the homepage looks empty until you add a
+   `README.md` **at that parent root** (even a short page linking into
+   `kactus_quote_editor/README.md` is enough).
+
 ---
 
 ## Improvement ideas
