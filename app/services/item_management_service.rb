@@ -1,42 +1,51 @@
 class ItemManagementService
-  def self.create_item(quote, item_params)
-    return error_result('Cannot modify items in a validated quote.') unless quote.draft?
+  class << self
+    def create_item(quote, item_params)
+      return error_result('Cannot modify items in a validated quote.') unless quote.draft?
 
-    item = quote.items.build(item_params)
-    if item.save
+      item = quote.items.build(item_params)
+
+      ActiveRecord::Base.transaction do
+        item.save!
+      end
+
       success_result('Item was successfully added.')
-    else
+    rescue ActiveRecord::RecordInvalid
       error_result('Unable to add item.')
     end
-  end
 
-  def self.update_item(item, item_params)
-    return error_result('Cannot modify items in a validated quote.') unless item.quote.draft?
+    def update_item(item, item_params)
+      return error_result('Cannot modify items in a validated quote.') unless item.quote.draft?
 
-    if item.update(item_params)
+      ActiveRecord::Base.transaction do
+        item.update!(item_params)
+      end
+
       success_result('Item was successfully updated.')
-    else
+    rescue ActiveRecord::RecordInvalid
       error_result('Unable to update item.')
     end
-  end
 
-  def self.destroy_item(item)
-    return error_result('Cannot modify items in a validated quote.') unless item.quote.draft?
+    def destroy_item(item)
+      return error_result('Cannot modify items in a validated quote.') unless item.quote.draft?
 
-    if item.destroy
+      ActiveRecord::Base.transaction do
+        item.destroy!
+      end
+
       success_result('Item was successfully deleted.')
-    else
+    rescue ActiveRecord::RecordNotDestroyed
       error_result('Unable to delete item.')
     end
-  end
 
-  private
+    private
 
-  def self.success_result(message)
-    { success: true, message: message }
-  end
+    def success_result(message)
+      { success: true, message: message }
+    end
 
-  def self.error_result(error)
-    { success: false, error: error }
+    def error_result(error)
+      { success: false, error: error }
+    end
   end
 end

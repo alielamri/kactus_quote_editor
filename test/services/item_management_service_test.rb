@@ -38,6 +38,16 @@ class ItemManagementServiceTest < ActiveSupport::TestCase
     assert_equal 'Unable to add item.', result[:error]
   end
 
+  test 'create_item rolls back atomically on validation failure' do
+    invalid_params = { name: '', quantity: 1, unit_price: 50.0, vat_rate: 20.0 }
+
+    assert_no_difference -> { Item.where(quote: @draft_quote).count } do
+      assert_no_difference -> { PaperTrail::Version.where(item_type: 'Item').count } do
+        ItemManagementService.create_item(@draft_quote, invalid_params)
+      end
+    end
+  end
+
   # Tests for update_item
   test 'update_item succeeds for draft quote' do
     params = { name: 'Updated Item', quantity: 3, unit_price: 75.0, vat_rate: 20.0 }

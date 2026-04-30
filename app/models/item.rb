@@ -1,4 +1,6 @@
 class Item < ApplicationRecord
+  has_paper_trail ignore: [:updated_at]
+
   belongs_to :quote
 
   validates :name, presence: true
