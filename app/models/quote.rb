@@ -5,7 +5,7 @@ class Quote < ApplicationRecord
 
   validates :name, presence: true
 
-  scope :recent, -> { includes(:items).order(created_at: :desc) }
+  scope :recent, -> { order(created_at: :desc) }
 
   def total_ht
     items.sum(&:total_ht)

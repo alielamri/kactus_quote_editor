@@ -1,5 +1,6 @@
 class QuotesController < ApplicationController
-  before_action :set_quote, only: [:show, :edit, :update, :destroy]
+  before_action :set_quote, only: [:edit, :update, :destroy]
+  before_action :set_quote_with_items, only: [:show]
   before_action :check_validated, only: [:edit, :destroy]
   before_action :check_validated_for_update, only: [:update]
 
@@ -44,13 +45,17 @@ class QuotesController < ApplicationController
     @quote = Quote.find(params[:id])
   end
 
+  def set_quote_with_items
+    @quote = Quote.includes(:items).find(params[:id])
+  end
+
   def quote_params
     params.require(:quote).permit(:name, :status)
   end
 
   def check_validated
     return if @quote.draft?
-    
+
     redirect_to @quote, alert: 'Cannot modify a validated quote.'
   end
 
