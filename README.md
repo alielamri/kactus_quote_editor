@@ -2,8 +2,6 @@
 
 Rails 8 application for partners to create, edit, validate and audit quotes with line items, VAT and totals.
 
-Extended technical notes: [DOCUMENTATION.md](DOCUMENTATION.md).
-
 Self-review : [`docs/CODE_REVIEW.md`](docs/CODE_REVIEW.md).
 
 ---
