@@ -1,0 +1,421 @@
+/* ============================================================
+   Quotes design system
+   Provided base + extensions to keep the same visual language
+   on forms (new/edit) and the quote detail (show).
+   ============================================================ */
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #f4f4f4;
+  font-family: Arial, sans-serif;
+  color: #211747;
+}
+
+.page {
+  width: 960px;
+  min-height: 360px;
+  margin: 55px auto;
+  background: #ffffff;
+  border: 1px solid #e2e2e2;
+  position: relative;
+  padding: 48px 74px;
+  box-sizing: border-box;
+}
+
+.page--narrow {
+  width: 560px;
+}
+
+.tag {
+  position: absolute;
+  top: -42px;
+  left: 0;
+  padding: 8px 14px;
+  border: 1px solid #bbbbbb;
+  border-radius: 6px;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  color: #222;
+}
+
+.component-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #7b2cff;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.diamond {
+  font-size: 16px;
+}
+
+.quote-box {
+  border: 2px dashed #c78cff;
+  border-radius: 4px;
+  padding: 12px 16px 16px;
+  width: 810px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  color: #211747;
+}
+
+thead {
+  background: #f4ecff;
+  color: #7661a7;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 14px 18px;
+  font-weight: 700;
+}
+
+th {
+  font-weight: 700;
+}
+
+.actions {
+  text-align: right;
+  white-space: nowrap;
+  width: 90px;
+}
+
+.icon-btn {
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid #211747;
+  border-radius: 3px;
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 7px;
+  font-size: 12px;
+  color: #211747;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.icon-btn.delete {
+  border-color: #ff6b4a;
+  color: #ff6b4a;
+}
+
+.icon-btn.view {
+  width: 52px;
+}
+
+.add-area {
+  margin-top: 18px;
+  border: 1px dashed #d8d1ec;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-btn {
+  border: 1.5px solid #211747;
+  background: #ffffff;
+  color: #211747;
+  border-radius: 4px;
+  padding: 11px 28px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+.plus {
+  font-size: 16px;
+  margin-right: 10px;
+  vertical-align: -1px;
+}
+
+/* ============================================================
+   Extensions: heading, breadcrumb, badges, forms, totals
+   Keep the same color palette as the base design.
+   ============================================================ */
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #211747;
+  margin: 0 0 24px;
+}
+
+.breadcrumb {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7661a7;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 18px;
+}
+
+.breadcrumb:hover {
+  color: #7b2cff;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 12px;
+  vertical-align: 2px;
+}
+
+.status-badge--draft {
+  background: #f4ecff;
+  color: #7661a7;
+}
+
+.status-badge--validated {
+  background: #e6f7ee;
+  color: #1f8a4c;
+}
+
+.quote-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.btn-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  border: 1.5px solid #211747;
+  background: #ffffff;
+  color: #211747;
+  border-radius: 4px;
+  padding: 9px 18px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+}
+
+.btn:hover {
+  background: #f4ecff;
+}
+
+.btn--primary {
+  background: #211747;
+  color: #ffffff;
+}
+
+.btn--primary:hover {
+  background: #2f1f6b;
+}
+
+.btn--success {
+  border-color: #1f8a4c;
+  color: #1f8a4c;
+}
+
+.btn--success:hover {
+  background: #e6f7ee;
+}
+
+.btn--danger {
+  border-color: #ff6b4a;
+  color: #ff6b4a;
+}
+
+.btn--danger:hover {
+  background: #fff1ed;
+}
+
+.button_to {
+  display: inline-block;
+  margin: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7661a7;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.form-field input[type="text"],
+.form-field input[type="number"],
+.form-field input[type="email"],
+.form-field select,
+.form-field textarea {
+  border: 1.5px solid #d8d1ec;
+  background: #ffffff;
+  color: #211747;
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  border-color: #7b2cff;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.error-box {
+  border: 1px solid #ff6b4a;
+  background: #fff1ed;
+  color: #211747;
+  border-radius: 4px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  font-size: 12px;
+}
+
+.error-box h2 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: #ff6b4a;
+}
+
+.error-box ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.flash {
+  border-radius: 4px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.flash--notice {
+  background: #f4ecff;
+  color: #7661a7;
+  border: 1px solid #d8d1ec;
+}
+
+.flash--alert {
+  background: #fff1ed;
+  color: #ff6b4a;
+  border: 1px solid #ff6b4a;
+}
+
+.totals {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.total-card {
+  border: 1px solid #e2e2e2;
+  border-radius: 4px;
+  padding: 14px 16px;
+}
+
+.total-card--highlight {
+  border-color: #211747;
+  background: #f4ecff;
+}
+
+.total-card__label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7661a7;
+  margin: 0 0 6px;
+}
+
+.total-card__value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #211747;
+  margin: 0;
+}
+
+.empty-state {
+  padding: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: #7661a7;
+}
+
+.section {
+  margin-top: 28px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #211747;
+  margin: 0 0 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-form {
+  border: 1px dashed #c78cff;
+  border-radius: 4px;
+  padding: 18px;
+  margin-bottom: 18px;
+  background: #fafaff;
+}
+
+.item-form[hidden] {
+  display: none;
+}
+
+.item-form h3 {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #7b2cff;
+}

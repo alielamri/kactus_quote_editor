@@ -1,0 +1,13 @@
+<div class="quote-header">
+  <div>
+    <h1 class="page-title" style="margin: 0;">
+      <%= quote.name %>
+      <% if quote.draft? %>
+        <span class="status-badge status-badge--draft">Brouillon</span>
+      <% else %>
+        <span class="status-badge status-badge--validated">Validé</span>
+      <% end %>
+    </h1>
+  </div>
+  <%= render 'shared/quote_actions', quote: quote %>
+</div>

@@ -1,4 +1,4 @@
-<div class="bg-white p-6 rounded-lg border border-gray-100<%= highlight ? ' ring-2 ring-green-500 bg-green-50' : '' %>">
-  <p class="text-gray-600 text-sm font-semibold uppercase tracking-wide mb-2"><%= label %></p>
-  <p class="text-3xl font-bold <%= color %>"><%= value %></p>
+<div class="total-card<%= ' total-card--highlight' if highlight %>">
+  <p class="total-card__label"><%= label %></p>
+  <p class="total-card__value"><%= value %></p>
 </div>

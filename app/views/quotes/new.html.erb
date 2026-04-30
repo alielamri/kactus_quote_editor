@@ -1,34 +1,29 @@
-<div class="screen-wrapper">
-  <div class="screen-inner">
-    <div class="screen-label">Créer un devis</div>
+<div class="page page--narrow">
+  <span class="tag">Nouveau devis</span>
 
-    <section class="page">
-      <%= link_to '← Retour', quotes_path, class: 'back-link' %>
+  <%= link_to '< Retour aux devis', quotes_path, class: 'breadcrumb' %>
+  <h1 class="page-title">Nouveau devis</h1>
 
-      <h1>Créer un nouveau devis</h1>
+  <% if @quote.errors.any? %>
+    <div class="error-box">
+      <h2><%= pluralize(@quote.errors.count, 'erreur') %></h2>
+      <ul>
+        <% @quote.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
 
-      <% if @quote.errors.any? %>
-        <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 12px; margin-bottom: 16px; color: #721c24; font-size: 11px; font-weight: 700;">
-          <%= pluralize(@quote.errors.count, "erreur") %> :
-          <ul style="margin: 8px 0 0; padding-left: 20px;">
-            <% @quote.errors.full_messages.each do |message| %>
-              <li><%= message %></li>
-            <% end %>
-          </ul>
-        </div>
-      <% end %>
+  <%= form_with(model: @quote, local: true) do |form| %>
+    <div class="form-field" style="margin-bottom: 18px;">
+      <%= form.label :name, 'Nom' %>
+      <%= form.text_field :name, autofocus: true, placeholder: 'Devis acme - mai 2026' %>
+    </div>
 
-      <%= form_with(model: @quote, local: true) do |form| %>
-        <div class="form-group">
-          <%= form.label :name, 'Nom du devis' %>
-          <%= form.text_field :name, placeholder: 'Ex: Événement annuel 2026' %>
-        </div>
-
-        <div class="form-actions">
-          <%= form.submit 'Créer le devis', class: 'primary' %>
-          <%= link_to 'Annuler', quotes_path, class: 'add-btn', style: 'text-decoration: none;' %>
-        </div>
-      <% end %>
-    </section>
-  </div>
+    <div class="form-actions">
+      <%= form.submit 'Créer le devis', class: 'btn btn--primary' %>
+      <%= link_to 'Annuler', quotes_path, class: 'btn' %>
+    </div>
+  <% end %>
 </div>

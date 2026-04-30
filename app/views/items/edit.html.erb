@@ -1,51 +1,45 @@
-<div class="screen-wrapper">
-  <div class="screen-inner">
-    <div class="screen-label">Modifier l'article</div>
+<div class="page page--narrow">
+  <span class="tag">Édition de l'item</span>
 
-    <section class="page">
-      <%= link_to '← Retour', @quote, class: 'back-link' %>
+  <%= link_to '< Retour au devis', @quote, class: 'breadcrumb' %>
+  <h1 class="page-title">Modifier l'item</h1>
 
-      <h1>Modifier l'article</h1>
+  <% if @item.errors.any? %>
+    <div class="error-box">
+      <h2><%= pluralize(@item.errors.count, 'erreur') %></h2>
+      <ul>
+        <% @item.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
 
-      <% if @item.errors.any? %>
-        <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 12px; margin-bottom: 16px; color: #721c24; font-size: 11px; font-weight: 700;">
-          <%= pluralize(@item.errors.count, "erreur") %> :
-          <ul style="margin: 8px 0 0; padding-left: 20px;">
-            <% @item.errors.full_messages.each do |message| %>
-              <li><%= message %></li>
-            <% end %>
-          </ul>
-        </div>
-      <% end %>
+  <%= form_with(model: [@quote, @item], local: true) do |form| %>
+    <div class="form-field" style="margin-bottom: 14px;">
+      <%= form.label :name, 'Nom' %>
+      <%= form.text_field :name, autofocus: true %>
+    </div>
 
-      <%= form_with(model: [@quote, @item], local: true) do |form| %>
-        <div class="form-grid">
-          <div class="form-group">
-            <%= form.label :name, 'Nom de l\'article' %>
-            <%= form.text_field :name %>
-          </div>
-          <div class="form-group">
-            <%= form.label :quantity, 'Quantité' %>
-            <%= form.number_field :quantity, min: 1 %>
-          </div>
-        </div>
+    <div class="form-grid">
+      <div class="form-field">
+        <%= form.label :quantity, 'Quantité' %>
+        <%= form.number_field :quantity, min: 1 %>
+      </div>
+      <div class="form-field">
+        <%= form.label :unit_price, 'Prix unitaire HT (€)' %>
+        <%= form.number_field :unit_price, step: 0.01, min: 0 %>
+      </div>
+    </div>
 
-        <div class="form-grid">
-          <div class="form-group">
-            <%= form.label :unit_price, 'Prix unitaire HT (€)' %>
-            <%= form.number_field :unit_price, step: 0.01, min: 0 %>
-          </div>
-          <div class="form-group">
-            <%= form.label :vat_rate, 'Taux TVA (%)' %>
-            <%= form.number_field :vat_rate, step: 0.01, min: 0, max: 100 %>
-          </div>
-        </div>
+    <div class="form-field" style="margin-bottom: 18px; max-width: 240px;">
+      <%= form.label :vat_rate, 'TVA (%)' %>
+      <%= form.number_field :vat_rate, step: 0.01, min: 0, max: 100 %>
+    </div>
 
-        <div class="form-actions">
-          <%= form.submit 'Mettre à jour', class: 'primary' %>
-          <%= link_to 'Annuler', @quote, class: 'add-btn', style: 'text-decoration: none;' %>
-        </div>
-      <% end %>
-    </section>
-  </div>
+    <div class="form-actions">
+      <%= form.submit 'Enregistrer', class: 'btn btn--primary' %>
+      <%= link_to 'Annuler', @quote, class: 'btn' %>
+    </div>
+  <% end %>
 </div>

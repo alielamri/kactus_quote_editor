@@ -1,64 +1,59 @@
-<div class="screen-wrapper">
-  <div class="screen-inner">
-    <div class="screen-label">Liste des devis</div>
+<div class="page">
+  <span class="tag">Ecrans</span>
 
-    <section class="page">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h1>Mes devis</h1>
-        <%= link_to new_quote_path, class: 'add-btn', style: 'margin: 0; text-decoration: none;' do %>
-          <span class="plus">＋</span>
-          Ajouter un devis
-        <% end %>
-      </div>
+  <h1 class="page-title">Mes devis</h1>
 
-      <% if @quotes.any? %>
-        <div style="overflow-x: auto;">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Date</th>
-                <th>Nom</th>
-                <th></th>
-              </tr>
-            </thead>
+  <% if flash[:notice] %>
+    <div class="flash flash--notice"><%= flash[:notice] %></div>
+  <% end %>
+  <% if flash[:alert] %>
+    <div class="flash flash--alert"><%= flash[:alert] %></div>
+  <% end %>
 
-            <tbody>
-              <% @quotes.each_with_index do |quote, index| %>
-                <tr>
-                  <td><%= index + 1 %></td>
-                  <td><%= quote.created_at.strftime('%d/%m/%Y') %></td>
-                  <td>
-                    <%= link_to quote.name, quote_path(quote), style: 'color: #211747; text-decoration: none;' %>
-                  </td>
-                  <td class="actions">
-                    <% if quote.draft? %>
-                      <%= link_to '✎', edit_quote_path(quote), class: 'icon-btn', style: 'text-decoration: none;' %>
-                      <%= button_to '🗑', quote_path(quote), method: :delete, data: { confirm: 'Êtes-vous sûr ?' }, class: 'icon-btn delete', style: 'border: none; cursor: pointer; padding: 0;' %>
-                    <% else %>
-                      <%= link_to '◉', quote_path(quote), class: 'icon-btn view', style: 'text-decoration: none;' %>
-                    <% end %>
-                  </td>
-                </tr>
+  <% if @quotes.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Date</th>
+          <th>Nom</th>
+          <th class="actions"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @quotes.each do |quote| %>
+          <tr>
+            <td><%= quote.id %></td>
+            <td><%= quote.created_at.strftime('%d/%m/%Y') %></td>
+            <td>
+              <%= link_to quote.name, quote_path(quote), style: 'color: #211747; text-decoration: none;' %>
+              <% if quote.validated? %>
+                <span class="status-badge status-badge--validated">Validé</span>
               <% end %>
-            </tbody>
-          </table>
-        </div>
+            </td>
+            <td class="actions">
+              <% if quote.draft? %>
+                <%= link_to edit_quote_path(quote), class: 'icon-btn', title: 'Éditer' do %>&#9998;<% end %>
+                <%= button_to quote_path(quote),
+                              method: :delete,
+                              form: { data: { turbo_confirm: 'Supprimer ce devis ?' }, style: 'display:inline;' },
+                              class: 'icon-btn delete',
+                              title: 'Supprimer' do %>&#128465;<% end %>
+              <% else %>
+                <%= link_to quote_path(quote), class: 'icon-btn view', title: 'Voir' do %>&#128065;<% end %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <div class="empty-state">Aucun devis pour le moment.</div>
+  <% end %>
 
-        <div class="add-area">
-          <%= link_to new_quote_path, class: 'add-btn', style: 'text-decoration: none;' do %>
-            <span class="plus">＋</span>
-            Ajouter un devis
-          <% end %>
-        </div>
-      <% else %>
-        <div class="add-area">
-          <%= link_to new_quote_path, class: 'add-btn', style: 'text-decoration: none;' do %>
-            <span class="plus">＋</span>
-            Ajouter un devis
-          <% end %>
-        </div>
-      <% end %>
-    </section>
+  <div class="add-area">
+    <%= link_to new_quote_path, class: 'add-btn' do %>
+      <span class="plus">+</span> Ajouter un devis
+    <% end %>
   </div>
 </div>

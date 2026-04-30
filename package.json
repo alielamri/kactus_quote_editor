@@ -10,7 +10,6 @@
   },
   "scripts": {
     "build": "esbuild app/javascript/application.js --bundle --sourcemap --outdir=app/assets/builds",
-    "build:css": "tailwindcss -i ./app/assets/stylesheets/application.css -o ./app/assets/builds/application.css",
     "dev": "esbuild app/javascript/application.js --bundle --sourcemap --outdir=app/assets/builds --watch=forever"
   }
 }

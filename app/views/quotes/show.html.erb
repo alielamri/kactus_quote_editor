@@ -1,115 +1,41 @@
-<div class="screen-wrapper">
-  <div class="screen-inner">
-    <div class="screen-label">Détail du devis</div>
+<div class="page" data-controller="quote-form">
+  <span class="tag">Devis</span>
 
-    <section class="page">
-      <%= link_to '← Retour', quotes_path, class: 'back-link' %>
+  <%= link_to '< Retour aux devis', quotes_path, class: 'breadcrumb' %>
 
-      <div class="quote-detail-header">
-        <div>
-          <h1><%= @quote.name %></h1>
-          <p style="margin: 8px 0 0; font-size: 11px; color: #7661a7;">
-            Créé le <%= @quote.created_at.strftime('%d/%m/%Y à %H:%M') %>
-          </p>
-        </div>
-        <div class="quote-detail-actions">
-          <% if @quote.draft? %>
-            <%= link_to '✎', edit_quote_path(@quote), class: 'icon-btn', style: 'text-decoration: none;' %>
-            <%= button_to '✓', @quote, method: :patch, params: { quote: { status: 'validated' } }, data: { confirm: 'Valider ce devis ?' }, class: 'icon-btn', style: 'border: none; cursor: pointer; padding: 0;' %>
-            <%= button_to '🗑', @quote, method: :delete, data: { confirm: 'Êtes-vous sûr ?' }, class: 'icon-btn delete', style: 'border: none; cursor: pointer; padding: 0;' %>
-          <% else %>
-            <span class="status-badge status-validated">Validé</span>
-          <% end %>
-        </div>
-      </div>
+  <% if flash[:notice] %>
+    <div class="flash flash--notice"><%= flash[:notice] %></div>
+  <% end %>
+  <% if flash[:alert] %>
+    <div class="flash flash--alert"><%= flash[:alert] %></div>
+  <% end %>
 
-      <!-- Items Section -->
-      <div style="margin-bottom: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: #211747;">Articles</h3>
-          <% if @quote.draft? %>
-            <button type="button" class="add-btn" data-action="click->quote-form#toggleNewItemForm" style="margin: 0;">
-              <span class="plus">＋</span>
-              Ajouter un article
-            </button>
-          <% end %>
-        </div>
+  <%= render 'shared/quote_header', quote: @quote %>
 
-        <!-- New Item Form -->
-        <% if @quote.draft? %>
-          <%= render 'items/form', quote: @quote %>
-        <% end %>
+  <div class="section">
+    <div class="section-title">
+      <span>Items</span>
+      <% if @quote.draft? %>
+        <button type="button" class="btn" data-action="click->quote-form#toggleNewItemForm">
+          <span class="plus">+</span> Ajouter un item
+        </button>
+      <% end %>
+    </div>
 
-        <!-- Items Table -->
-        <% if @quote.items.any? %>
-          <div style="overflow-x: auto;">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nom</th>
-                  <th>Quantité</th>
-                  <th>PU HT</th>
-                  <th>Total HT</th>
-                  <th>TVA %</th>
-                  <th>Montant TVA</th>
-                  <th>Total TTC</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <% @quote.items.each do |item| %>
-                  <tr>
-                    <td><%= item.name %></td>
-                    <td style="text-align: center;"><%= item.quantity %></td>
-                    <td><%= number_to_currency(item.unit_price, unit: '€') %></td>
-                    <td><%= number_to_currency(item.total_ht, unit: '€') %></td>
-                    <td><%= number_to_percentage(item.vat_rate, precision: 2) %></td>
-                    <td><%= number_to_currency(item.total_vat, unit: '€') %></td>
-                    <td style="font-weight: 700;"><%= number_to_currency(item.total_ttc, unit: '€') %></td>
-                    <td class="actions">
-                      <% if @quote.draft? %>
-                        <%= link_to '✎', edit_quote_item_path(@quote, item), class: 'icon-btn', style: 'text-decoration: none;' %>
-                        <%= button_to '🗑', quote_item_path(@quote, item), method: :delete, data: { confirm: 'Êtes-vous sûr ?' }, class: 'icon-btn delete', style: 'border: none; cursor: pointer; padding: 0;' %>
-                      <% end %>
-                    </td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-        <% end %>
-      </div>
+    <% if @quote.draft? %>
+      <%= render 'items/form', quote: @quote %>
+    <% end %>
 
-      <!-- Totals Section -->
-      <div class="totals-section">
-        <h3>Résumé financier</h3>
-        <div class="totals-grid">
-          <div class="total-card">
-            <div class="total-card-label">Total HT</div>
-            <div class="total-card-value"><%= number_to_currency(@quote.total_ht, unit: '€') %></div>
-          </div>
-          <div class="total-card">
-            <div class="total-card-label">Total TVA</div>
-            <div class="total-card-value"><%= number_to_currency(@quote.total_vat, unit: '€') %></div>
-          </div>
-          <div class="total-card" style="background: #f0ecff; border-color: #c78cff;">
-            <div class="total-card-label">Total TTC</div>
-            <div class="total-card-value" style="color: #7b2cff;"><%= number_to_currency(@quote.total_ttc, unit: '€') %></div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <% if @quote.items.any? %>
+      <%= render 'items/list', quote: @quote %>
+    <% else %>
+      <div class="empty-state">Aucun item dans ce devis.</div>
+    <% end %>
+  </div>
+
+  <div class="totals">
+    <%= render 'shared/total_card', label: 'Total HT', value: number_to_currency(@quote.total_ht, unit: '€', format: '%n %u'), highlight: false %>
+    <%= render 'shared/total_card', label: 'Total TVA', value: number_to_currency(@quote.total_vat, unit: '€', format: '%n %u'), highlight: false %>
+    <%= render 'shared/total_card', label: 'Total TTC', value: number_to_currency(@quote.total_ttc, unit: '€', format: '%n %u'), highlight: true %>
   </div>
 </div>
-
-<script type="text/javascript" data-turbo-eval="false">
-  if (document.querySelector('[data-controller="quote-form"]') === null) {
-    const elem = document.querySelector('[data-action*="quote-form"]');
-    if (elem) {
-      const wrapper = document.querySelector('.page');
-      const dataController = document.createAttribute('data-controller');
-      dataController.value = 'quote-form';
-      wrapper.setAttributeNode(dataController);
-    }
-  }
-</script>
