@@ -1,0 +1,7 @@
+<div class="space-x-3">
+  <% if quote.draft? %>
+    <%= link_to 'Edit', edit_quote_path(quote), class: 'px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition' %>
+    <%= button_to 'Validate', quote_path(quote), method: :patch, params: { quote: { status: 'validated' } }, data: { confirm: 'Are you sure?' }, class: 'px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition' %>
+    <%= button_to 'Delete', quote_path(quote), method: :delete, data: { confirm: 'Are you sure?' }, class: 'px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition' %>
+  <% end %>
+</div>

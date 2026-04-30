@@ -43,6 +43,6 @@ class ItemsController < ApplicationController
   end
 
   def check_quote_not_validated
-    redirect_to @quote, alert: 'Cannot modify items in a validated quote.' if @quote.draft? == false
+    redirect_to @quote, alert: 'Cannot modify items in a validated quote.' unless @quote.draft?
   end
 end

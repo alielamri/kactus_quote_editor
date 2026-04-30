@@ -1,13 +1,13 @@
 class QuotesController < ApplicationController
-  before_action :set_quote, only: [:show, :edit, :update, :destroy, :validate]
-  before_action :check_validated, only: [:edit, :update, :destroy]
+  before_action :set_quote, only: [:show, :edit, :update, :destroy]
+  before_action :check_validated, only: [:edit, :destroy]
+  before_action :check_validated_for_update, only: [:update]
 
   def index
     @quotes = Quote.recent
   end
 
-  def show
-  end
+  def show; end
 
   def new
     @quote = Quote.new
@@ -22,12 +22,12 @@ class QuotesController < ApplicationController
     end
   end
 
-  def edit
-  end
+  def edit; end
 
   def update
     if @quote.update(quote_params)
-      redirect_to @quote, notice: 'Quote was successfully updated.'
+      message = params[:quote][:status] == 'validated' ? 'Quote was successfully validated.' : 'Quote was successfully updated.'
+      redirect_to @quote, notice: message
     else
       render :edit, status: :unprocessable_entity
     end
@@ -38,14 +38,6 @@ class QuotesController < ApplicationController
     redirect_to quotes_url, notice: 'Quote was successfully deleted.'
   end
 
-  def validate
-    if @quote.update(status: :validated)
-      redirect_to @quote, notice: 'Quote was successfully validated.'
-    else
-      redirect_to @quote, alert: 'Unable to validate quote.'
-    end
-  end
-
   private
 
   def set_quote
@@ -53,10 +45,16 @@ class QuotesController < ApplicationController
   end
 
   def quote_params
-    params.require(:quote).permit(:name)
+    params.require(:quote).permit(:name, :status)
   end
 
   def check_validated
-    redirect_to @quote, alert: 'Cannot modify a validated quote.' if @quote.draft? == false
+    redirect_to @quote, alert: 'Cannot modify a validated quote.' unless @quote.draft?
+  end
+
+  def check_validated_for_update
+    return unless @quote.validated? && params[:quote][:status].blank?
+    # Only block updates if trying to modify name of a validated quote
+    redirect_to @quote, alert: 'Cannot modify a validated quote.'
   end
 end

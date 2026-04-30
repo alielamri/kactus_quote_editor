@@ -1,0 +1,16 @@
+{
+  "name": "kactus_quote_editor",
+  "private": "true",
+  "devDependencies": {
+    "esbuild": "^0.20.0"
+  },
+  "dependencies": {
+    "@hotwired/stimulus": "^3.0.0",
+    "@hotwired/turbo-rails": "^7.0.0"
+  },
+  "scripts": {
+    "build": "esbuild app/javascript/application.js --bundle --sourcemap --outdir=app/assets/builds",
+    "build:css": "tailwindcss -i ./app/assets/stylesheets/application.css -o ./app/assets/builds/application.css",
+    "dev": "esbuild app/javascript/application.js --bundle --sourcemap --outdir=app/assets/builds --watch=forever"
+  }
+}

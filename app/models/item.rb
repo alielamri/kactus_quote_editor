@@ -43,6 +43,8 @@ class Item < ApplicationRecord
   private
 
   def quote_must_not_be_validated
-    errors.add(:quote, 'cannot be modified because it is validated') if quote&.draft? == false
+    return if quote&.validated?
+    
+    errors.add(:quote, 'cannot be modified because it is validated')
   end
 end
