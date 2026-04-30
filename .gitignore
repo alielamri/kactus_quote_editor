@@ -16,6 +16,9 @@
 !/log/.keep
 !/tmp/.keep
 
+# Belt-and-suspenders: never commit Ruby/Rails or tooling *.log anywhere in the tree.
+*.log
+
 # Ignore pidfiles, but keep the directory.
 /tmp/pids/*
 !/tmp/pids/
