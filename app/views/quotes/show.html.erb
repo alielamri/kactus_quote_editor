@@ -1,37 +1,35 @@
-<div class="min-h-screen bg-gray-100 py-12" data-controller="quote-form">
-  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-    <!-- Back link -->
-    <div class="mb-6">
-      <%= link_to '← Retour aux devis', quotes_path, class: 'text-gray-600 hover:text-gray-900 text-sm font-medium' %>
-    </div>
+<div class="screen-wrapper">
+  <div class="screen-inner">
+    <div class="screen-label">Détail du devis</div>
 
-    <!-- Main Card -->
-    <div class="bg-white shadow-sm rounded-lg overflow-hidden">
-      <!-- Header with Title and Status -->
-      <div class="px-8 py-6 border-b border-gray-200">
-        <div class="flex justify-between items-start">
-          <div>
-            <h1 class="text-3xl font-bold text-gray-900"><%= @quote.name %></h1>
-            <p class="text-sm text-gray-600 mt-1">
-              Créé le <%= @quote.created_at.strftime('%d/%m/%Y à %H:%M') %>
-            </p>
-          </div>
-          <div class="flex items-center gap-4">
-            <span class="px-4 py-2 rounded-full text-sm font-semibold <%= @quote.draft? ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' %>">
-              <%= @quote.status.humanize %>
-            </span>
-            <%= render 'shared/quote_actions', quote: @quote %>
-          </div>
+    <section class="page">
+      <%= link_to '← Retour', quotes_path, class: 'back-link' %>
+
+      <div class="quote-detail-header">
+        <div>
+          <h1><%= @quote.name %></h1>
+          <p style="margin: 8px 0 0; font-size: 11px; color: #7661a7;">
+            Créé le <%= @quote.created_at.strftime('%d/%m/%Y à %H:%M') %>
+          </p>
+        </div>
+        <div class="quote-detail-actions">
+          <% if @quote.draft? %>
+            <%= link_to '✎', edit_quote_path(@quote), class: 'icon-btn', style: 'text-decoration: none;' %>
+            <%= button_to '✓', @quote, method: :patch, params: { quote: { status: 'validated' } }, data: { confirm: 'Valider ce devis ?' }, class: 'icon-btn', style: 'border: none; cursor: pointer; padding: 0;' %>
+            <%= button_to '🗑', @quote, method: :delete, data: { confirm: 'Êtes-vous sûr ?' }, class: 'icon-btn delete', style: 'border: none; cursor: pointer; padding: 0;' %>
+          <% else %>
+            <span class="status-badge status-validated">Validé</span>
+          <% end %>
         </div>
       </div>
 
       <!-- Items Section -->
-      <div class="px-8 py-8">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-bold text-gray-900">Articles</h2>
+      <div style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: #211747;">Articles</h3>
           <% if @quote.draft? %>
-            <button type="button" class="px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 transition flex items-center gap-2" data-action="click->quote-form#toggleNewItemForm">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+            <button type="button" class="add-btn" data-action="click->quote-form#toggleNewItemForm" style="margin: 0;">
+              <span class="plus">＋</span>
               Ajouter un article
             </button>
           <% end %>
@@ -44,26 +42,74 @@
 
         <!-- Items Table -->
         <% if @quote.items.any? %>
-          <%= render 'items/list', quote: @quote %>
-        <% else %>
-          <div class="text-center py-16">
-            <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
-            </svg>
-            <p class="text-gray-600 text-lg">Aucun article pour le moment</p>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Quantité</th>
+                  <th>PU HT</th>
+                  <th>Total HT</th>
+                  <th>TVA %</th>
+                  <th>Montant TVA</th>
+                  <th>Total TTC</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <% @quote.items.each do |item| %>
+                  <tr>
+                    <td><%= item.name %></td>
+                    <td style="text-align: center;"><%= item.quantity %></td>
+                    <td><%= number_to_currency(item.unit_price, unit: '€') %></td>
+                    <td><%= number_to_currency(item.total_ht, unit: '€') %></td>
+                    <td><%= number_to_percentage(item.vat_rate, precision: 2) %></td>
+                    <td><%= number_to_currency(item.total_vat, unit: '€') %></td>
+                    <td style="font-weight: 700;"><%= number_to_currency(item.total_ttc, unit: '€') %></td>
+                    <td class="actions">
+                      <% if @quote.draft? %>
+                        <%= link_to '✎', edit_quote_item_path(@quote, item), class: 'icon-btn', style: 'text-decoration: none;' %>
+                        <%= button_to '🗑', quote_item_path(@quote, item), method: :delete, data: { confirm: 'Êtes-vous sûr ?' }, class: 'icon-btn delete', style: 'border: none; cursor: pointer; padding: 0;' %>
+                      <% end %>
+                    </td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
           </div>
         <% end %>
       </div>
 
       <!-- Totals Section -->
-      <div class="px-8 py-8 bg-gray-50 border-t border-gray-200">
-        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-6">Résumé financier</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <%= render 'shared/total_card', label: 'Total HT', value: number_to_currency(@quote.total_ht, unit: '€'), color: 'text-gray-900', highlight: false %>
-          <%= render 'shared/total_card', label: 'Total TVA', value: number_to_currency(@quote.total_vat, unit: '€'), color: 'text-blue-600', highlight: false %>
-          <%= render 'shared/total_card', label: 'Total TTC', value: number_to_currency(@quote.total_ttc, unit: '€'), color: 'text-green-600', highlight: true %>
+      <div class="totals-section">
+        <h3>Résumé financier</h3>
+        <div class="totals-grid">
+          <div class="total-card">
+            <div class="total-card-label">Total HT</div>
+            <div class="total-card-value"><%= number_to_currency(@quote.total_ht, unit: '€') %></div>
+          </div>
+          <div class="total-card">
+            <div class="total-card-label">Total TVA</div>
+            <div class="total-card-value"><%= number_to_currency(@quote.total_vat, unit: '€') %></div>
+          </div>
+          <div class="total-card" style="background: #f0ecff; border-color: #c78cff;">
+            <div class="total-card-label">Total TTC</div>
+            <div class="total-card-value" style="color: #7b2cff;"><%= number_to_currency(@quote.total_ttc, unit: '€') %></div>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 </div>
+
+<script type="text/javascript" data-turbo-eval="false">
+  if (document.querySelector('[data-controller="quote-form"]') === null) {
+    const elem = document.querySelector('[data-action*="quote-form"]');
+    if (elem) {
+      const wrapper = document.querySelector('.page');
+      const dataController = document.createAttribute('data-controller');
+      dataController.value = 'quote-form';
+      wrapper.setAttributeNode(dataController);
+    }
+  }
+</script>

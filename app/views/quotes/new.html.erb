@@ -1,16 +1,16 @@
-<div class="min-h-screen bg-gray-100 py-12">
-  <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="mb-6">
-      <%= link_to '← Retour', quotes_path, class: 'text-gray-600 hover:text-gray-900 text-sm font-medium' %>
-    </div>
+<div class="screen-wrapper">
+  <div class="screen-inner">
+    <div class="screen-label">Créer un devis</div>
 
-    <div class="bg-white shadow-sm rounded-lg p-8">
-      <h1 class="text-3xl font-bold text-gray-900 mb-8">Créer un nouveau devis</h1>
+    <section class="page">
+      <%= link_to '← Retour', quotes_path, class: 'back-link' %>
+
+      <h1>Créer un nouveau devis</h1>
 
       <% if @quote.errors.any? %>
-        <div class="mb-6 p-4 bg-red-50 rounded-lg border border-red-200">
-          <h2 class="text-sm font-semibold text-red-900 mb-2"><%= pluralize(@quote.errors.count, "erreur") %> :</h2>
-          <ul class="list-disc list-inside text-sm text-red-700">
+        <div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; padding: 12px; margin-bottom: 16px; color: #721c24; font-size: 11px; font-weight: 700;">
+          <%= pluralize(@quote.errors.count, "erreur") %> :
+          <ul style="margin: 8px 0 0; padding-left: 20px;">
             <% @quote.errors.full_messages.each do |message| %>
               <li><%= message %></li>
             <% end %>
@@ -18,17 +18,17 @@
         </div>
       <% end %>
 
-      <%= form_with(model: @quote, local: true, class: 'space-y-6') do |form| %>
-        <div>
-          <%= form.label :name, 'Nom du devis', class: 'block text-sm font-semibold text-gray-900 mb-2' %>
-          <%= form.text_field :name, placeholder: 'Ex: Événement annuel 2026', class: 'w-full px-4 py-2 border border-gray-300 rounded hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0' %>
+      <%= form_with(model: @quote, local: true) do |form| %>
+        <div class="form-group">
+          <%= form.label :name, 'Nom du devis' %>
+          <%= form.text_field :name, placeholder: 'Ex: Événement annuel 2026' %>
         </div>
 
-        <div class="flex gap-4 pt-4">
-          <%= form.submit 'Créer le devis', class: 'px-6 py-2 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition' %>
-          <%= link_to 'Annuler', quotes_path, class: 'px-6 py-2 bg-gray-300 text-gray-900 font-semibold rounded hover:bg-gray-400 transition' %>
+        <div class="form-actions">
+          <%= form.submit 'Créer le devis', class: 'primary' %>
+          <%= link_to 'Annuler', quotes_path, class: 'add-btn', style: 'text-decoration: none;' %>
         </div>
       <% end %>
-    </div>
+    </section>
   </div>
 </div>
