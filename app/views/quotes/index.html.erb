@@ -1,0 +1,51 @@
+<div class="min-h-screen bg-gray-50">
+  <div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-4xl font-bold text-gray-900">Quotes</h1>
+      <%= link_to 'New Quote', new_quote_path, class: 'px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition' %>
+    </div>
+
+    <% if @quotes.any? %>
+      <div class="bg-white shadow rounded-lg overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
+              <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
+              <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Items</th>
+              <th class="px-6 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <% @quotes.each do |quote| %>
+              <tr class="hover:bg-gray-50 transition">
+                <td class="px-6 py-4 text-sm font-medium text-gray-900">
+                  <%= link_to quote.name, quote_path(quote), class: 'text-blue-600 hover:text-blue-800' %>
+                </td>
+                <td class="px-6 py-4 text-sm">
+                  <span class="px-3 py-1 rounded-full text-sm font-semibold <%= quote.draft? ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' %>">
+                    <%= quote.status.humanize %>
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-700">
+                  <%= quote.items.count %>
+                </td>
+                <td class="px-6 py-4 text-sm text-right space-x-3">
+                  <% if quote.draft? %>
+                    <%= link_to 'Edit', edit_quote_path(quote), class: 'text-blue-600 hover:text-blue-800 font-medium' %>
+                    <%= link_to 'Delete', quote_path(quote), method: :delete, data: { confirm: 'Are you sure?' }, class: 'text-red-600 hover:text-red-800 font-medium' %>
+                  <% end %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <div class="bg-white rounded-lg shadow p-12 text-center">
+        <p class="text-gray-500 text-lg mb-4">No quotes yet</p>
+        <%= link_to 'Create your first quote', new_quote_path, class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
+      </div>
+    <% end %>
+  </div>
+</div>

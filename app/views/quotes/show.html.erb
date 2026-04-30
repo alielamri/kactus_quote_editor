@@ -1,0 +1,133 @@
+<div class="min-h-screen bg-gray-50" data-controller="quote-form">
+  <div class="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
+    <div class="mb-8">
+      <%= link_to 'Back to Quotes', quotes_path, class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
+    </div>
+
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+      <div class="px-8 py-6 border-b border-gray-200">
+        <div class="flex justify-between items-center">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2"><%= @quote.name %></h1>
+            <span class="px-3 py-1 rounded-full text-sm font-semibold <%= @quote.draft? ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' %>">
+              <%= @quote.status.humanize %>
+            </span>
+          </div>
+          <div class="space-x-3">
+            <% if @quote.draft? %>
+              <%= link_to 'Edit', edit_quote_path(@quote), class: 'px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition' %>
+              <%= button_to 'Validate', quote_validate_path(@quote), method: :patch, data: { confirm: 'Are you sure?' }, class: 'px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition' %>
+              <%= link_to 'Delete', quote_path(@quote), method: :delete, data: { confirm: 'Are you sure?' }, class: 'px-4 py-2 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition' %>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items Section -->
+      <div class="px-8 py-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-900">Items</h2>
+          <% if @quote.draft? %>
+            <button type="button" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition" data-action="click->quote-form#toggleNewItemForm">Add Item</button>
+          <% end %>
+        </div>
+
+        <!-- New Item Form -->
+        <% if @quote.draft? %>
+          <div id="new-item-form" class="mb-6 p-6 bg-gray-50 rounded-lg border-2 border-gray-200 hidden">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">New Item</h3>
+            <%= form_with(model: [@quote, Item.new], local: true, class: 'space-y-4') do |form| %>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <%= form.label :name, class: 'block text-sm font-semibold text-gray-900 mb-1' %>
+                  <%= form.text_field :name, placeholder: 'Item name', class: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' %>
+                </div>
+                <div>
+                  <%= form.label :quantity, class: 'block text-sm font-semibold text-gray-900 mb-1' %>
+                  <%= form.number_field :quantity, value: 1, min: 1, class: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' %>
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <%= form.label :unit_price, class: 'block text-sm font-semibold text-gray-900 mb-1' %>
+                  <%= form.number_field :unit_price, step: 0.01, min: 0, placeholder: '0.00', class: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' %>
+                </div>
+                <div>
+                  <%= form.label :vat_rate, class: 'block text-sm font-semibold text-gray-900 mb-1' %>
+                  <%= form.number_field :vat_rate, value: 20, step: 0.01, min: 0, max: 100, class: 'w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500' %>
+                </div>
+              </div>
+              <div class="flex space-x-3">
+                <%= form.submit 'Add Item', class: 'px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition' %>
+                <button type="button" class="px-4 py-2 bg-gray-400 text-white font-semibold rounded-lg hover:bg-gray-500 transition" data-action="click->quote-form#toggleNewItemForm">Cancel</button>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+
+        <!-- Items Table -->
+        <% if @quote.items.any? %>
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-6 py-3 text-left text-sm font-semibold text-gray-900">Name</th>
+                  <th class="px-6 py-3 text-center text-sm font-semibold text-gray-900">Quantity</th>
+                  <th class="px-6 py-3 text-right text-sm font-semibold text-gray-900">Unit Price HT</th>
+                  <th class="px-6 py-3 text-right text-sm font-semibold text-gray-900">Total HT</th>
+                  <th class="px-6 py-3 text-right text-sm font-semibold text-gray-900">VAT Rate</th>
+                  <th class="px-6 py-3 text-right text-sm font-semibold text-gray-900">Total VAT</th>
+                  <th class="px-6 py-3 text-right text-sm font-semibold text-gray-900">Total TTC</th>
+                  <% if @quote.draft? %>
+                    <th class="px-6 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
+                  <% end %>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <% @quote.items.each do |item| %>
+                  <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900"><%= item.name %></td>
+                    <td class="px-6 py-4 text-sm text-center text-gray-700"><%= item.quantity %></td>
+                    <td class="px-6 py-4 text-sm text-right text-gray-700"><%= number_to_currency(item.unit_price, unit: '€') %></td>
+                    <td class="px-6 py-4 text-sm text-right text-gray-700"><%= number_to_currency(item.total_ht, unit: '€') %></td>
+                    <td class="px-6 py-4 text-sm text-right text-gray-700"><%= number_to_percentage(item.vat_rate, precision: 2) %></td>
+                    <td class="px-6 py-4 text-sm text-right text-gray-700"><%= number_to_currency(item.total_vat, unit: '€') %></td>
+                    <td class="px-6 py-4 text-sm text-right font-semibold text-gray-900"><%= number_to_currency(item.total_ttc, unit: '€') %></td>
+                    <% if @quote.draft? %>
+                      <td class="px-6 py-4 text-sm text-right space-x-2">
+                        <%= link_to 'Edit', edit_quote_item_path(@quote, item), class: 'text-blue-600 hover:text-blue-800 font-medium' %>
+                        <%= link_to 'Delete', quote_item_path(@quote, item), method: :delete, data: { confirm: 'Are you sure?' }, class: 'text-red-600 hover:text-red-800 font-medium' %>
+                      </td>
+                    <% end %>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <div class="text-center py-12">
+            <p class="text-gray-500 text-lg">No items yet</p>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Totals Section -->
+      <div class="px-8 py-6 bg-gray-50 border-t border-gray-200">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="bg-white p-6 rounded-lg border border-gray-200">
+            <p class="text-gray-600 text-sm mb-1">Total HT (ex. VAT)</p>
+            <p class="text-3xl font-bold text-gray-900"><%= number_to_currency(@quote.total_ht, unit: '€') %></p>
+          </div>
+          <div class="bg-white p-6 rounded-lg border border-gray-200">
+            <p class="text-gray-600 text-sm mb-1">Total VAT</p>
+            <p class="text-3xl font-bold text-blue-600"><%= number_to_currency(@quote.total_vat, unit: '€') %></p>
+          </div>
+          <div class="bg-white p-6 rounded-lg border border-gray-200 ring-2 ring-green-500">
+            <p class="text-gray-600 text-sm mb-1">Total TTC (inc. VAT)</p>
+            <p class="text-3xl font-bold text-green-600"><%= number_to_currency(@quote.total_ttc, unit: '€') %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
