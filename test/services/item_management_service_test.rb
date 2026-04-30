@@ -1,11 +1,11 @@
-require 'test_helper'
+require "test_helper"
 
 class ItemManagementServiceTest < ActiveSupport::TestCase
   def setup
-    @draft_quote = Quote.create!(name: 'Draft Quote', status: :draft)
-    @validated_quote = Quote.create!(name: 'Validated Quote', status: :validated)
+    @draft_quote = Quote.create!(name: "Draft Quote", status: :draft)
+    @validated_quote = Quote.create!(name: "Validated Quote", status: :validated)
     @item = Item.create!(
-      name: 'Test Item',
+      name: "Test Item",
       quantity: 1,
       unit_price: 100.0,
       vat_rate: 20.0,
@@ -14,54 +14,54 @@ class ItemManagementServiceTest < ActiveSupport::TestCase
   end
 
   # Tests for create_item
-  test 'create_item succeeds for draft quote' do
-    params = { name: 'New Item', quantity: 2, unit_price: 50.0, vat_rate: 20.0 }
+  test "create_item succeeds for draft quote" do
+    params = { name: "New Item", quantity: 2, unit_price: 50.0, vat_rate: 20.0 }
     result = ItemManagementService.create_item(@draft_quote, params)
-    
+
     assert result[:success]
-    assert_equal 'Item was successfully added.', result[:message]
+    assert_equal "Item was successfully added.", result[:message]
   end
 
-  test 'create_item fails for validated quote' do
-    params = { name: 'New Item', quantity: 2, unit_price: 50.0, vat_rate: 20.0 }
+  test "create_item fails for validated quote" do
+    params = { name: "New Item", quantity: 2, unit_price: 50.0, vat_rate: 20.0 }
     result = ItemManagementService.create_item(@validated_quote, params)
-    
+
     assert_not result[:success]
-    assert_equal 'Cannot modify items in a validated quote.', result[:error]
+    assert_equal "Cannot modify items in a validated quote.", result[:error]
   end
 
-  test 'create_item fails with invalid params' do
-    params = { name: '', quantity: -1, unit_price: 50.0, vat_rate: 20.0 }
+  test "create_item fails with invalid params" do
+    params = { name: "", quantity: -1, unit_price: 50.0, vat_rate: 20.0 }
     result = ItemManagementService.create_item(@draft_quote, params)
-    
+
     assert_not result[:success]
-    assert_equal 'Unable to add item.', result[:error]
+    assert_equal "Unable to add item.", result[:error]
   end
 
-  test 'create_item rolls back atomically on validation failure' do
-    invalid_params = { name: '', quantity: 1, unit_price: 50.0, vat_rate: 20.0 }
+  test "create_item rolls back atomically on validation failure" do
+    invalid_params = { name: "", quantity: 1, unit_price: 50.0, vat_rate: 20.0 }
 
     assert_no_difference -> { Item.where(quote: @draft_quote).count } do
-      assert_no_difference -> { PaperTrail::Version.where(item_type: 'Item').count } do
+      assert_no_difference -> { PaperTrail::Version.where(item_type: "Item").count } do
         ItemManagementService.create_item(@draft_quote, invalid_params)
       end
     end
   end
 
   # Tests for update_item
-  test 'update_item succeeds for draft quote' do
-    params = { name: 'Updated Item', quantity: 3, unit_price: 75.0, vat_rate: 20.0 }
+  test "update_item succeeds for draft quote" do
+    params = { name: "Updated Item", quantity: 3, unit_price: 75.0, vat_rate: 20.0 }
     result = ItemManagementService.update_item(@item, params)
-    
+
     assert result[:success]
-    assert_equal 'Item was successfully updated.', result[:message]
-    assert_equal 'Updated Item', @item.reload.name
+    assert_equal "Item was successfully updated.", result[:message]
+    assert_equal "Updated Item", @item.reload.name
   end
 
-  test 'update_item fails for validated quote' do
+  test "update_item fails for validated quote" do
     # Create item while quote is still draft
     item = Item.create!(
-      name: 'Item in Validated Quote',
+      name: "Item in Validated Quote",
       quantity: 1,
       unit_price: 100.0,
       vat_rate: 20.0,
@@ -69,35 +69,35 @@ class ItemManagementServiceTest < ActiveSupport::TestCase
     )
     # Now validate the quote
     @draft_quote.update!(status: :validated)
-    
-    params = { name: 'Updated Item', quantity: 3, unit_price: 75.0, vat_rate: 20.0 }
+
+    params = { name: "Updated Item", quantity: 3, unit_price: 75.0, vat_rate: 20.0 }
     result = ItemManagementService.update_item(item, params)
-    
+
     assert_not result[:success]
-    assert_equal 'Cannot modify items in a validated quote.', result[:error]
+    assert_equal "Cannot modify items in a validated quote.", result[:error]
   end
 
-  test 'update_item fails with invalid params' do
-    params = { name: '', quantity: -1, unit_price: 75.0, vat_rate: 20.0 }
+  test "update_item fails with invalid params" do
+    params = { name: "", quantity: -1, unit_price: 75.0, vat_rate: 20.0 }
     result = ItemManagementService.update_item(@item, params)
-    
+
     assert_not result[:success]
-    assert_equal 'Unable to update item.', result[:error]
+    assert_equal "Unable to update item.", result[:error]
   end
 
   # Tests for destroy_item
-  test 'destroy_item succeeds for draft quote' do
+  test "destroy_item succeeds for draft quote" do
     result = ItemManagementService.destroy_item(@item)
-    
+
     assert result[:success]
-    assert_equal 'Item was successfully deleted.', result[:message]
+    assert_equal "Item was successfully deleted.", result[:message]
     assert_not Item.exists?(@item.id)
   end
 
-  test 'destroy_item fails for validated quote' do
+  test "destroy_item fails for validated quote" do
     # Create item while quote is still draft
     item = Item.create!(
-      name: 'Item in Validated Quote',
+      name: "Item in Validated Quote",
       quantity: 1,
       unit_price: 100.0,
       vat_rate: 20.0,
@@ -105,10 +105,10 @@ class ItemManagementServiceTest < ActiveSupport::TestCase
     )
     # Now validate the quote
     @draft_quote.update!(status: :validated)
-    
+
     result = ItemManagementService.destroy_item(item)
-    
+
     assert_not result[:success]
-    assert_equal 'Cannot modify items in a validated quote.', result[:error]
+    assert_equal "Cannot modify items in a validated quote.", result[:error]
   end
 end

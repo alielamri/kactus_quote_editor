@@ -4,7 +4,7 @@ class QuoteValidationService
   end
 
   def self.validation_message_for(params)
-    params[:status] == 'validated' ? 'Quote was successfully validated.' : 'Quote was successfully updated.'
+    params[:status] == "validated" ? "Quote was successfully validated." : "Quote was successfully updated."
   end
 
   def self.can_validate_for_update?(quote, params)

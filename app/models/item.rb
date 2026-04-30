@@ -1,5 +1,5 @@
 class Item < ApplicationRecord
-  has_paper_trail ignore: [:updated_at]
+  has_paper_trail ignore: [ :updated_at ]
 
   belongs_to :quote
 
@@ -27,6 +27,6 @@ class Item < ApplicationRecord
   def quote_must_not_be_validated
     return if quote&.draft?
 
-    errors.add(:quote, 'cannot be modified because it is validated')
+    errors.add(:quote, "cannot be modified because it is validated")
   end
 end

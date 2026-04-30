@@ -1,5 +1,5 @@
 class Quote < ApplicationRecord
-  has_paper_trail ignore: [:updated_at]
+  has_paper_trail ignore: [ :updated_at ]
 
   has_many :items, dependent: :destroy
 
@@ -28,6 +28,6 @@ class Quote < ApplicationRecord
   def tag_validate_event_for_paper_trail
     return unless status_changed? && validated?
 
-    self.paper_trail_event = 'validate'
+    self.paper_trail_event = "validate"
   end
 end
