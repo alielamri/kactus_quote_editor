@@ -1,203 +1,427 @@
 # Kactus Quote Editor
 
-A Rails application for managing and editing invoices/quotes with line items, VAT calculation, and quote validation.
+A Rails 8 application that lets partners create, edit, validate and audit quotes
+(`devis`) with their line items (`items`), VAT rates and totals.
 
-## Overview
+This repository is a technical-test deliverable. The focus is on **production-grade
+code quality** rather than UI polish: explicit service objects, transactions, audit
+trail with `paper_trail`, N+1 awareness, and a comprehensive test suite.
 
-Kactus Quote Editor is a B2B marketplace quote management tool that allows partners to:
+---
 
-- Create and manage multiple quotes
-- Add line items with quantity, unit price, and VAT rate
-- View detailed totals (ex. VAT, VAT amount, inc. VAT)
-- Validate quotes to lock them from further modification
-- Edit or delete draft quotes
+## Table of contents
 
-## Requirements
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Setup](#setup)
+- [Running the app](#running-the-app)
+- [Running the tests](#running-the-tests)
+- [Project structure](#project-structure)
+- [Domain model](#domain-model)
+- [Architectural decisions](#architectural-decisions)
+- [Audit trail](#audit-trail)
+- [Troubleshooting](#troubleshooting)
+- [Improvement ideas](#improvement-ideas)
 
-- Ruby 3.4+
-- Rails 8.0+
-- PostgreSQL 14+
-- Node.js 18+
+---
 
-## Setup Instructions
+## Features
 
-### 1. Clone the Repository
+### Quote lifecycle
+- Create, list, edit, delete and validate quotes
+- A quote is either **draft** (fully editable) or **validated** (read-only, locked)
+- The validated → draft transition is intentionally not exposed (auditable, irreversible)
+
+### Items
+- Add, edit, remove line items inside a quote
+- Each item has a name, quantity, HT unit price (decimal `€`), and a VAT rate (%)
+- Items can only be touched while the parent quote is `draft`
+
+### Calculations
+Totals are computed at request time, not stored:
+
+| Total | Formula |
+|---|---|
+| Total HT (item) | `quantity × unit_price` |
+| Total VAT (item) | `(total_ht × vat_rate) / 100`, rounded to 2 decimals |
+| Total TTC (item) | `total_ht + total_vat` |
+| Quote totals | Sum of the corresponding item totals |
+
+### Audit trail
+Every create / update / destroy on a quote or an item is recorded by
+[`paper_trail`](https://github.com/paper-trail-gem/paper_trail) in the `versions`
+table (Postgres JSONB). The transition `draft → validated` is recorded under a
+custom event name `validate` to make the audit log readable from a business
+standpoint.
+
+---
+
+## Tech stack
+
+| Concern | Choice |
+|---|---|
+| Web framework | Rails 8.1 (Hotwire by default) |
+| Language | Ruby 3.4 |
+| Database | PostgreSQL |
+| Asset pipeline | Propshaft |
+| CSS | Tailwind CSS v4 (via `tailwindcss-rails`) + a custom design system in `app/assets/stylesheets/quotes.css` |
+| JavaScript | esbuild via `jsbundling-rails`, Stimulus + Turbo |
+| Audit trail | `paper_trail` |
+| Tests | Minitest (Rails default) |
+
+---
+
+## Prerequisites
+
+You need the following installed locally:
+
+| Dependency | Recommended version | How to install |
+|---|---|---|
+| Ruby | **3.4.x** (matches `.ruby-version`) | `asdf install ruby 3.4.7` or `rbenv install 3.4.7` |
+| Node.js | **18.x** or higher | `asdf install nodejs 20` or via [nvm](https://github.com/nvm-sh/nvm) |
+| PostgreSQL | **14+** | macOS: `brew install postgresql@16 && brew services start postgresql@16` |
+| Bundler | latest (matches `Gemfile.lock`) | `gem install bundler` |
+| Foreman | latest (used by `bin/dev`) | `gem install foreman` (system-wide, not in `Gemfile`) |
+
+> **PostgreSQL note**
+> The default `config/database.yml` connects through a Unix socket and uses your
+> OS user as the database role. If your local Postgres only accepts TCP
+> connections (e.g. Docker, Postgres.app on certain setups), prefix every
+> `bin/rails db:*` command with `PGHOST=localhost`, or set it once for the
+> shell: `export PGHOST=localhost`.
+
+---
+
+## Setup
+
+### 1. Clone and enter the repository
 
 ```bash
 git clone <repository-url>
 cd kactus_quote_editor
 ```
 
-### 2. Install Dependencies
+### 2. Install Ruby and JavaScript dependencies
 
 ```bash
 bundle install
+npm install
 ```
 
-### 3. Setup Database
+### 3. Create and migrate the databases
 
 ```bash
-rails db:create db:migrate
+bin/rails db:create
+bin/rails db:migrate
 ```
 
-### 4. Start the Application
+This applies four migrations:
+
+| Migration | Purpose |
+|---|---|
+| `CreateQuotes` | `quotes` table (name, status enum) |
+| `CreateItems` | `items` table (decimal `unit_price`, decimal `vat_rate`, `quote_id` FK) |
+| `CreateVersions` | `paper_trail` versions table (JSONB `object`, indexed on `[item_type, item_id]`, `event`, `created_at`) |
+| `AddObjectChangesToVersions` | Adds the JSONB `object_changes` column to `versions` |
+
+### 4. Build assets once (optional, only useful if you don't run `bin/dev`)
+
+```bash
+npm run build               # bundle JS to app/assets/builds/application.js
+bin/rails tailwindcss:build # build Tailwind CSS to app/assets/builds/tailwind.css
+```
+
+You can skip this step when using `bin/dev` (see below) — both watchers run in parallel.
+
+---
+
+## Running the app
+
+### Development
+
+The recommended way to run everything in parallel (Rails server + JS watcher + CSS watcher):
 
 ```bash
 bin/dev
 ```
 
-The application will be available at `http://localhost:3000`
+This is a thin wrapper around `foreman start -f Procfile.dev`, which starts:
 
-## Architecture
-
-### Models
-
-- **Quote**: Represents an invoice/quote with multiple items
-  - Attributes: `name`, `status` (draft/validated)
-  - Methods: `total_ht`, `total_vat`, `total_ttc` for calculations
-  - Associations: `has_many :items, dependent: :destroy`
-
-- **Item**: Line items within a quote
-  - Attributes: `name`, `quantity`, `unit_price_cents`, `vat_rate`
-  - Validations: presence, numericality constraints
-  - Protection: cannot be modified if quote is validated
-
-### Controllers
-
-- **QuotesController**: Handles quote CRUD operations and validation
-  - `index`: List all quotes (sorted by most recent)
-  - `show`: Display quote with items and totals
-  - `new/create`: Create new quote
-  - `edit/update`: Modify draft quotes
-  - `destroy`: Delete quotes
-  - `validate`: Lock quote from further modification
-
-- **ItemsController**: Handles item operations within quotes
-  - `create`: Add new item to quote
-  - `edit/update`: Modify item details
-  - `destroy`: Remove item from quote
-
-### Views
-
-- **Quotes Index** (`views/quotes/index.html.erb`):
-  - Table listing all quotes
-  - Status indicators (draft/validated)
-  - Quick actions (view, edit, delete)
-
-- **Quote Show** (`views/quotes/show.html.erb`):
-  - Detailed quote view
-  - Items table with individual totals
-  - Add/edit/delete items (only for draft quotes)
-  - Quote-level totals displayed in cards
-  - Validate/edit/delete quote buttons
-
-- **Quote Form** (`views/quotes/new.html.erb`, `views/quotes/edit.html.erb`):
-  - Simple form to create or edit quote name
-
-- **Item Form** (`views/items/edit.html.erb`):
-  - Form to edit item details
-
-## Features
-
-### Quote Management
-
-- **Create**: Add new quotes with a name
-- **Read**: View list of all quotes or detailed quote view
-- **Update**: Modify quote name or items (only if draft)
-- **Delete**: Remove quotes (only if draft)
-- **Validate**: Lock quote to prevent modifications
-
-### Item Management
-
-- **Add Items**: Add line items with name, quantity, unit price, and VAT rate
-- **Edit Items**: Modify item details (only if quote is draft)
-- **Delete Items**: Remove items from quote (only if quote is draft)
-- **Automatic Calculations**: VAT and totals calculated automatically
-
-### Financial Calculations
-
-All monetary values are stored in cents (as integers) to avoid floating-point precision issues:
-
-- **Total HT** (ex. VAT): `quantity × unit_price`
-- **Total VAT**: `(total_ht × vat_rate) / 100`
-- **Total TTC** (inc. VAT): `total_ht + total_vat`
-
-Quote-level totals are sums of item-level totals.
-
-## User Experience
-
-### States
-
-1. **Draft Quote**: Fully editable. Users can add, modify, or delete items and the quote itself.
-2. **Validated Quote**: Read-only. Quote cannot be modified or deleted. Used for completed orders.
-
-### Navigation
-
-- Home page shows quote list
-- Clicking quote name opens detailed view
-- "New Quote" button on list page creates new quote
-- "Add Item" button visible only for draft quotes
-- Edit/Delete actions only available for draft quotes
-
-## Technology Stack
-
-- **Framework**: Rails 8.0
-- **Database**: PostgreSQL
-- **Frontend**: Tailwind CSS + Stimulus JS
-- **JavaScript bundling**: Importmap (no build step required)
-- **Testing**: Minitest (Rails default)
-
-## Testing
-
-Run the test suite with:
-
-```bash
-rails test
+```
+web: bin/rails server
+js:  npm run dev
+css: bin/rails tailwindcss:watch[always]
 ```
 
-Run specific test file:
+> The `[always]` flag is important: without it, `tailwindcss:watch` exits as soon
+> as stdin is closed (foreman quirk), which would shut the whole process group down.
+
+The app is then available at: **http://localhost:3000**
+
+### Plain Rails (no watchers)
+
+If you don't need to edit the front-end, you can also run just the server after
+building the assets once (see step 4 above):
 
 ```bash
-rails test test/models/quote_test.rb
+bin/rails server
 ```
 
-## Code Quality
+### Console / one-off scripts
 
-The application follows Rails best practices:
+```bash
+bin/rails console
+bin/rails runner 'puts Quote.recent.count'
+```
 
-- Validations at model level
-- Before-action callbacks for authorization checks
-- Consistent naming conventions
-- DRY principles
-- Proper error handling and user feedback
-- Responsive UI with Tailwind CSS
+---
 
-## Deployment
+## Running the tests
 
-The application includes a `Dockerfile` for containerized deployment. To deploy:
+The whole test suite (50 tests, 79 assertions) runs in well under a second:
 
-1. Set up production environment variables
-2. Run database migrations: `rails db:migrate RAILS_ENV=production`
-3. Precompile assets: `rails assets:precompile`
-4. Deploy using Kamal or Docker
+```bash
+bin/rails test
+```
 
-## Potential Improvements
+To run a single file or a single test:
 
-1. **User Authentication**: Add user accounts to manage quotes per user
-2. **PDF Export**: Generate quote PDFs for sharing with clients
-3. **Email Notifications**: Send quote details via email
-4. **Audit Trail**: Track quote modifications with timestamps and user details
-5. **Batch Operations**: Update multiple items at once
-6. **Custom VAT Rates**: Admin interface to manage company-specific VAT rates
-7. **Quote Templates**: Save quote templates for quick creation
-8. **Search & Filter**: Advanced filtering by date, status, total amount
-9. **Localization**: Multi-language support and currency handling
-10. **API**: RESTful API for third-party integrations
+```bash
+bin/rails test test/services/item_management_service_test.rb
+bin/rails test test/models/quote_audit_test.rb -n test_tags_the_version_event_as_validate_when_status_moves_to_validated
+```
 
-## License
+What is covered:
 
-This application is proprietary to Kactus and is provided as-is for evaluation purposes.
+| Layer | Files |
+|---|---|
+| Service objects | `test/services/quote_validation_service_test.rb`, `quote_total_calculation_service_test.rb`, `item_management_service_test.rb` (incl. transactional rollback) |
+| Audit trail | `test/models/quote_audit_test.rb`, `test/models/item_audit_test.rb` |
 
-## Support
+---
 
-For issues or questions, please contact the development team.
+## Project structure
+
+Only the test-relevant parts are shown — the rest is a vanilla Rails 8 skeleton.
+
+```
+app/
+├── assets/
+│   ├── stylesheets/
+│   │   └── quotes.css            # Custom design system (palette, .page, .icon-btn, .btn, ...)
+│   └── tailwind/
+│       └── application.css       # Tailwind entry point (only @import "tailwindcss";)
+├── controllers/
+│   ├── quotes_controller.rb
+│   └── items_controller.rb
+├── javascript/
+│   ├── application.js            # Stimulus + Turbo bootstrap
+│   └── controllers/
+│       └── quote_form_controller.js   # Toggles the "new item" inline form
+├── models/
+│   ├── quote.rb
+│   └── item.rb
+├── services/                     # Business logic extracted from controllers
+│   ├── quote_validation_service.rb
+│   ├── quote_total_calculation_service.rb
+│   └── item_management_service.rb
+└── views/
+    ├── quotes/{index,new,edit,show}.html.erb
+    ├── items/{_form,_list,edit}.html.erb
+    └── shared/{_quote_header,_quote_actions,_total_card}.html.erb
+```
+
+---
+
+## Domain model
+
+```
++----------------+        1     N        +----------------+
+|     Quote      |---------------------->|      Item      |
++----------------+                       +----------------+
+| name           |                       | name           |
+| status (enum)  |                       | quantity (int) |
+|   draft        |                       | unit_price (€) |
+|   validated    |                       | vat_rate (%)   |
++----------------+                       +----------------+
+        |                                       |
+        |  paper_trail                          |  paper_trail
+        |                                       |
+        v                                       v
++--------------------------------------------------------+
+|  versions  (item_type, item_id, event, object,         |
+|             object_changes, whodunnit, created_at)     |
++--------------------------------------------------------+
+```
+
+### Why `unit_price` is a `decimal` (and not integer cents)
+
+Money is traditionally stored in cents to avoid floating-point precision issues.
+We deliberately chose **`decimal(10, 2)`** here:
+
+- Postgres `decimal` is **exact arithmetic** — there is no float-rounding bug.
+- Forms and reports work with euros directly, which is more intuitive for partners.
+- The downside ("conversion every time") doesn't apply to fixed-precision decimals.
+
+---
+
+## Architectural decisions
+
+### Service objects
+
+Three services live in `app/services/`. The rule: **a controller orchestrates,
+it doesn't compute**. Each service returns a `{ success:, message: | error: }`
+hash so controllers stay flat.
+
+| Service | Responsibility |
+|---|---|
+| `QuoteValidationService` | "Can this quote be modified right now?" + the right flash message for an update vs. a status change to `validated`. |
+| `QuoteTotalCalculationService` | Sums the per-item totals up to the quote level. Easy to extend later (discounts, multi-currency, …). |
+| `ItemManagementService` | Wraps `create / update / destroy` of items in an explicit `ActiveRecord::Base.transaction`. Returns a structured result; controllers only translate it into a redirect. |
+
+### Explicit transactions
+
+Even when a single `save!` already runs in an implicit transaction, the services
+wrap operations in `ActiveRecord::Base.transaction { ... }`:
+
+```ruby
+ActiveRecord::Base.transaction do
+  item.save!
+end
+```
+
+This is intentional:
+
+1. It **documents the boundary** — future maintainers know where the atomic unit is.
+2. Adding a second write (e.g. notifying another model) automatically inherits
+   the same transaction without anyone forgetting.
+3. The `paper_trail` version is created inside the same transaction, so we can
+   never end up with a saved record without its audit row, or vice-versa.
+
+### N+1 prevention
+
+The codebase has been audited for N+1 queries:
+
+| Page | Queries |
+|---|---|
+| `GET /quotes` | **1** — loads quotes only (no `includes(:items)` because the index doesn't display items). |
+| `GET /quotes/:id` | **2** — loads the quote and preloads its items via `set_quote_with_items` (a dedicated `before_action`). The view then iterates and computes all three totals from the same in-memory collection. |
+
+`set_quote` (used by `edit` / `update` / `destroy`) deliberately does **not**
+preload items, since those actions don't need them.
+
+The reverse association `Item#quote` is auto-detected as the inverse of
+`Quote#items` by Rails 7+, so `item.quote.draft?` (called in
+`Item#quote_must_not_be_validated`) does **not** trigger an extra query.
+
+---
+
+## Audit trail
+
+We use [`paper_trail`](https://github.com/paper-trail-gem/paper_trail) rather
+than rolling our own `AuditLog` model. Rationale:
+
+- Battle-tested, ~30M downloads, used by GitHub and Shopify.
+- Comes with `whodunnit`, `reify` (rebuild a previous in-memory state) and
+  point-in-time queries — all features you eventually want for a billing system.
+- Less code to maintain than a custom solution.
+
+### Configuration choices
+
+- **JSONB columns** for `object` and `object_changes` (configured in
+  `db/migrate/2026..._create_versions.rb`). This is more compact and queryable
+  than the default `text + YAML`.
+- **JSON serializer** (`config/initializers/paper_trail.rb`) to match the JSONB
+  storage.
+- **`ignore: [:updated_at]`** on both models — `updated_at`-only changes never
+  produce a version.
+- **Custom event `validate`** — the `Quote#tag_validate_event_for_paper_trail`
+  callback rewrites the event from `update` to `validate` when the status
+  transitions to `validated`. Audit logs read like a business journal.
+
+### Querying versions
+
+```ruby
+quote = Quote.last
+quote.versions                       # => all versions, oldest first
+quote.versions.where(event: 'validate').last
+quote.versions.last.reify            # => an in-memory instance of the previous state
+```
+
+---
+
+## Troubleshooting
+
+### `Propshaft::MissingAssetError: The asset 'quotes.css' was not found in the load path.`
+
+A stale `public/assets/.manifest.json` (left over from a previous
+`bin/rails assets:precompile`) puts Propshaft into a static lookup mode that
+ignores newly-added files. The fix is included in `.gitignore`, but if you ever
+run `assets:precompile` locally and then add a new stylesheet:
+
+```bash
+rm -rf public/assets
+bin/rails server   # restart the server
+```
+
+### `bin/dev` shuts down right after boot (`css.1 exited with code 0`)
+
+This is `tailwindcss:watch` exiting when stdin closes. Make sure the Procfile
+uses the `[always]` flag:
+
+```
+css: bin/rails tailwindcss:watch[always]
+```
+
+### `PG::ConnectionBad: connection to server on socket "..." failed`
+
+Postgres is not listening on a Unix socket. Either:
+
+```bash
+export PGHOST=localhost
+```
+
+…or update `config/database.yml` to set `host: localhost` for `development:` and
+`test:`.
+
+---
+
+## Improvement ideas
+
+These are intentionally **not** in the current code — they would be the next
+items I'd shape with a PM in a real squad.
+
+### Code quality / robustness
+- **Integration tests** at the controller level (`ActionDispatch::IntegrationTest`)
+  asserting the full request/response cycle, including the redirect-with-flash
+  on validated-quote attempts. Today only the unit layer is covered.
+- **System tests** (Capybara + Selenium) to lock the Stimulus interactions
+  (toggling the new-item form, confirmation dialogs).
+- **`bullet`** gem in development to detect any future N+1 regression at the
+  request level.
+- **Request-level query budget assertion**
+  (`assert_queries_count`) on the show action to prevent regressions on the
+  N+1 work.
+
+### Domain
+- **`whodunnit`** — once a `User` model exists, set `current_user.id` on
+  `PaperTrail.request.whodunnit` in `ApplicationController` so every version
+  records who did what.
+- **Soft-delete** on quotes (`deleted_at`) instead of hard `destroy`, to keep
+  the audit trail joinable with live data.
+- **Quote duplication** ("create from this") to speed up partners' workflow.
+- **PDF export** of a validated quote (Prawn or wkhtmltopdf).
+- **Background totals caching** on quotes with many items, recomputed via
+  `after_save` on `Item` (probably overkill until volumes prove it).
+
+### Product
+- **Quote versioning UX** built on top of `paper_trail.reify`: show a history
+  side-panel with diffs and a "view as of" mode.
+- **Currency / locale** — today the partner currency is implicit (`€`).
+  Externalizing it is mostly an `I18n` + a `currency` column on `Quote`.
+- **Authorization** — when users exist, partners must only see their own
+  quotes; the `before_action :set_quote(_with_items)` is the natural place
+  to scope by `current_user`.
+
+---
