@@ -49,7 +49,9 @@ class QuotesController < ApplicationController
   end
 
   def check_validated
-    redirect_to @quote, alert: 'Cannot modify a validated quote.' unless QuoteValidationService.can_modify?(@quote)
+    return if @quote.draft?
+    
+    redirect_to @quote, alert: 'Cannot modify a validated quote.'
   end
 
   def check_validated_for_update

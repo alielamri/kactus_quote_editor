@@ -1,18 +1,39 @@
-<div class="min-h-screen bg-gray-50" data-controller="quote-form">
-  <div class="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8">
-    <div class="mb-8">
-      <%= link_to 'Back to Quotes', quotes_path, class: 'text-blue-600 hover:text-blue-800 font-semibold' %>
+<div class="min-h-screen bg-gray-100 py-12" data-controller="quote-form">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Back link -->
+    <div class="mb-6">
+      <%= link_to '← Retour aux devis', quotes_path, class: 'text-gray-600 hover:text-gray-900 text-sm font-medium' %>
     </div>
 
-    <div class="bg-white shadow rounded-lg overflow-hidden">
-      <%= render 'shared/quote_header', quote: @quote %>
+    <!-- Main Card -->
+    <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+      <!-- Header with Title and Status -->
+      <div class="px-8 py-6 border-b border-gray-200">
+        <div class="flex justify-between items-start">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900"><%= @quote.name %></h1>
+            <p class="text-sm text-gray-600 mt-1">
+              Créé le <%= @quote.created_at.strftime('%d/%m/%Y à %H:%M') %>
+            </p>
+          </div>
+          <div class="flex items-center gap-4">
+            <span class="px-4 py-2 rounded-full text-sm font-semibold <%= @quote.draft? ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800' %>">
+              <%= @quote.status.humanize %>
+            </span>
+            <%= render 'shared/quote_actions', quote: @quote %>
+          </div>
+        </div>
+      </div>
 
       <!-- Items Section -->
-      <div class="px-8 py-6">
+      <div class="px-8 py-8">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-900">Items</h2>
+          <h2 class="text-xl font-bold text-gray-900">Articles</h2>
           <% if @quote.draft? %>
-            <button type="button" class="px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition" data-action="click->quote-form#toggleNewItemForm">Add Item</button>
+            <button type="button" class="px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded hover:bg-blue-700 transition flex items-center gap-2" data-action="click->quote-form#toggleNewItemForm">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path></svg>
+              Ajouter un article
+            </button>
           <% end %>
         </div>
 
@@ -25,18 +46,22 @@
         <% if @quote.items.any? %>
           <%= render 'items/list', quote: @quote %>
         <% else %>
-          <div class="text-center py-12">
-            <p class="text-gray-500 text-lg">No items yet</p>
+          <div class="text-center py-16">
+            <svg class="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+            </svg>
+            <p class="text-gray-600 text-lg">Aucun article pour le moment</p>
           </div>
         <% end %>
       </div>
 
       <!-- Totals Section -->
-      <div class="px-8 py-6 bg-gray-50 border-t border-gray-200">
+      <div class="px-8 py-8 bg-gray-50 border-t border-gray-200">
+        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-6">Résumé financier</h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <%= render 'shared/total_card', label: 'Total HT (ex. VAT)', value: number_to_currency(@quote.total_ht, unit: '€'), color: 'text-gray-900', highlight: false %>
-          <%= render 'shared/total_card', label: 'Total VAT', value: number_to_currency(@quote.total_vat, unit: '€'), color: 'text-blue-600', highlight: false %>
-          <%= render 'shared/total_card', label: 'Total TTC (inc. VAT)', value: number_to_currency(@quote.total_ttc, unit: '€'), color: 'text-green-600', highlight: true %>
+          <%= render 'shared/total_card', label: 'Total HT', value: number_to_currency(@quote.total_ht, unit: '€'), color: 'text-gray-900', highlight: false %>
+          <%= render 'shared/total_card', label: 'Total TVA', value: number_to_currency(@quote.total_vat, unit: '€'), color: 'text-blue-600', highlight: false %>
+          <%= render 'shared/total_card', label: 'Total TTC', value: number_to_currency(@quote.total_ttc, unit: '€'), color: 'text-green-600', highlight: true %>
         </div>
       </div>
     </div>
