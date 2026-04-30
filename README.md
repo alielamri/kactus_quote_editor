@@ -2,7 +2,7 @@
 
 Rails 8 application for partners to create, edit, validate and audit quotes with line items, VAT and totals.
 
-Extended technical notes (architecture, audit trail, rationale, detailed troubleshooting): [DOCUMENTATION.md](DOCUMENTATION.md).
+Extended technical notes: [DOCUMENTATION.md](DOCUMENTATION.md).
 
 ---
 
@@ -16,7 +16,6 @@ Extended technical notes (architecture, audit trail, rationale, detailed trouble
 - [Running the tests](#running-the-tests)
 - [Project structure](#project-structure)
 - [Domain model](#domain-model)
-- [Troubleshooting](#troubleshooting)
 - [Improvement ideas](#improvement-ideas)
 
 ---
@@ -45,10 +44,6 @@ Totals are computed when rendered (not stored columns):
 | Total TTC (item) | `total_ht + total_vat` |
 | Quote totals | Sum of item totals |
 
-### Audit trail
-
-Changes to quotes and items are versioned with [`paper_trail`](https://github.com/paper-trail-gem/paper_trail) in the `versions` table (PostgreSQL JSONB).
-
 ---
 
 ## Tech stack
@@ -61,7 +56,6 @@ Changes to quotes and items are versioned with [`paper_trail`](https://github.co
 | Asset pipeline | Propshaft |
 | CSS | Tailwind CSS v4 (`tailwindcss-rails`) + `app/assets/stylesheets/quotes.css` |
 | JavaScript | esbuild (`jsbundling-rails`), Stimulus + Turbo |
-| Audit trail | `paper_trail` |
 | Tests | Minitest |
 
 ---
@@ -181,20 +175,7 @@ app/
 | draft          |                       | unit_price     |
 | validated      |                       | vat_rate       |
 +----------------+                       +----------------+
-                 paper_trail → versions (JSONB)
 ```
-
----
-
-## Troubleshooting
-
-| Symptom | What to do |
-|---|---|
-| `Propshaft::MissingAssetError` for `quotes.css` | `rm -rf public/assets` and restart the server |
-| `bin/dev` stops immediately (`css` exits 0) | Ensure `Procfile.dev` uses `bin/rails tailwindcss:watch[always]` |
-| `PG::ConnectionBad` on Unix socket | `export PGHOST=localhost` or set `host: localhost` in `config/database.yml` |
-
-More context for each case: [DOCUMENTATION.md § Troubleshooting](DOCUMENTATION.md#troubleshooting).
 
 ---
 
