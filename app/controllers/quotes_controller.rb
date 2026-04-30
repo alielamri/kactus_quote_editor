@@ -26,7 +26,7 @@ class QuotesController < ApplicationController
 
   def update
     if @quote.update(quote_params)
-      message = params[:quote][:status] == 'validated' ? 'Quote was successfully validated.' : 'Quote was successfully updated.'
+      message = QuoteValidationService.validation_message_for(quote_params)
       redirect_to @quote, notice: message
     else
       render :edit, status: :unprocessable_entity
@@ -49,11 +49,11 @@ class QuotesController < ApplicationController
   end
 
   def check_validated
-    redirect_to @quote, alert: 'Cannot modify a validated quote.' unless @quote.draft?
+    redirect_to @quote, alert: 'Cannot modify a validated quote.' unless QuoteValidationService.can_modify?(@quote)
   end
 
   def check_validated_for_update
-    return unless @quote.validated? && params[:quote][:status].blank?
+    return unless @quote.validated? && quote_params[:status].blank?
     # Only block updates if trying to modify name of a validated quote
     redirect_to @quote, alert: 'Cannot modify a validated quote.'
   end

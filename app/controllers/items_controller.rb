@@ -1,15 +1,13 @@
 class ItemsController < ApplicationController
   before_action :set_quote
   before_action :set_item, only: [:edit, :update, :destroy]
-  before_action :check_quote_not_validated, only: [:create, :update, :destroy]
 
   def create
-    puts "create item #{params.inspect}"
-    @item = @quote.items.build(item_params)
-    if @item.save
-      redirect_to @quote, notice: 'Item was successfully added.'
+    result = ItemManagementService.create_item(@quote, item_params)
+    if result[:success]
+      redirect_to @quote, notice: result[:message]
     else
-      redirect_to @quote, alert: 'Unable to add item.'
+      redirect_to @quote, alert: result[:error]
     end
   end
 
@@ -17,16 +15,21 @@ class ItemsController < ApplicationController
   end
 
   def update
-    if @item.update(item_params)
-      redirect_to @quote, notice: 'Item was successfully updated.'
+    result = ItemManagementService.update_item(@item, item_params)
+    if result[:success]
+      redirect_to @quote, notice: result[:message]
     else
-      render :edit, status: :unprocessable_entity
+      redirect_to @quote, alert: result[:error]
     end
   end
 
   def destroy
-    @item.destroy
-    redirect_to @quote, notice: 'Item was successfully deleted.'
+    result = ItemManagementService.destroy_item(@item)
+    if result[:success]
+      redirect_to @quote, notice: result[:message]
+    else
+      redirect_to @quote, alert: result[:error]
+    end
   end
 
   private
@@ -41,9 +44,5 @@ class ItemsController < ApplicationController
 
   def item_params
     params.require(:item).permit(:name, :quantity, :unit_price, :vat_rate)
-  end
-
-  def check_quote_not_validated
-    redirect_to @quote, alert: 'Cannot modify items in a validated quote.' if @quote.draft? == false
   end
 end
