@@ -17,7 +17,7 @@ class QuotesController < ApplicationController
   def create
     @quote = Quote.new(quote_params)
     if @quote.save
-      redirect_to @quote, notice: "Quote was successfully created."
+      redirect_to @quote, notice: I18n.t("flash.quotes.created")
     else
       render :new, status: :unprocessable_entity
     end
@@ -36,7 +36,7 @@ class QuotesController < ApplicationController
 
   def destroy
     @quote.destroy
-    redirect_to quotes_url, notice: "Quote was successfully deleted."
+    redirect_to quotes_url, notice: I18n.t("flash.quotes.deleted")
   end
 
   private
@@ -56,12 +56,12 @@ class QuotesController < ApplicationController
   def check_validated
     return if @quote.draft?
 
-    redirect_to @quote, alert: "Cannot modify a validated quote."
+    redirect_to @quote, alert: I18n.t("flash.quotes.cannot_modify_validated")
   end
 
   def check_validated_for_update
-    return unless @quote.validated? && quote_params[:status].blank?
-    # Only block updates if trying to modify name of a validated quote
-    redirect_to @quote, alert: "Cannot modify a validated quote."
+    return if @quote.draft?
+
+    redirect_to @quote, alert: I18n.t("flash.quotes.cannot_modify_validated")
   end
 end

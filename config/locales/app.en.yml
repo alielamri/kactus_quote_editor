@@ -1,0 +1,17 @@
+en:
+  flash:
+    quotes:
+      created: "Quote was successfully created."
+      updated: "Quote was successfully updated."
+      validated: "Quote was successfully validated."
+      deleted: "Quote was successfully deleted."
+      cannot_modify_validated: "Cannot modify a validated quote."
+    items:
+      added: "Item was successfully added."
+      updated: "Item was successfully updated."
+      deleted: "Item was successfully deleted."
+      cannot_modify_validated_quote: "Cannot modify items in a validated quote."
+      delete_failed: "Unable to delete item."
+  errors:
+    quote:
+      cannot_modify_validated: "Cannot modify a validated quote"

@@ -46,4 +46,24 @@ class QuoteTest < ActiveSupport::TestCase
     @quote.update(status: :validated)
     assert @quote.validated?
   end
+
+  test "cannot update name on an already validated quote" do
+    q = Quote.create!(name: "Original", status: :validated)
+    assert_not q.update(name: "Changed")
+    assert_equal I18n.t("errors.quote.cannot_modify_validated"), q.errors[:base].first
+    assert_equal "Original", q.reload.name
+  end
+
+  test "draft quote can still be renamed" do
+    q = Quote.create!(name: "Draft name", status: :draft)
+    assert q.update(name: "New name")
+    assert_equal "New name", q.reload.name
+  end
+
+  test "totals are zero for quote with no line items" do
+    empty = Quote.create!(name: "Empty", status: :draft)
+    assert_equal 0, empty.total_ht
+    assert_equal 0, empty.total_vat
+    assert_equal 0, empty.total_ttc
+  end
 end

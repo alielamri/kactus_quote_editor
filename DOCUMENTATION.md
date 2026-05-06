@@ -200,7 +200,7 @@ What is covered:
 
 | Layer | Files |
 |---|---|
-| Service objects | `test/services/quote_validation_service_test.rb`, `quote_total_calculation_service_test.rb`, `item_management_service_test.rb` (incl. transactional rollback) |
+| Service objects | `test/services/quote_validation_service_test.rb`, `item_management_service_test.rb` (incl. transactional rollback) |
 | Audit trail | `test/models/quote_audit_test.rb`, `test/models/item_audit_test.rb` |
 
 ---
@@ -228,7 +228,6 @@ app/
 │   └── item.rb
 ├── services/                     # Business logic extracted from controllers
 │   ├── quote_validation_service.rb
-│   ├── quote_total_calculation_service.rb
 │   └── item_management_service.rb
 └── views/
     ├── quotes/{index,new,edit,show}.html.erb
@@ -274,15 +273,16 @@ We deliberately chose **`decimal(10, 2)`** here:
 
 ### Service objects
 
-Three services live in `app/services/`. The rule: **a controller orchestrates,
+Two services live in `app/services/`. The rule: **a controller orchestrates,
 it doesn't compute**. Each service returns a `{ success:, message: | error: }`
 hash so controllers stay flat.
 
 | Service | Responsibility |
 |---|---|
-| `QuoteValidationService` | "Can this quote be modified right now?" + the right flash message for an update vs. a status change to `validated`. |
-| `QuoteTotalCalculationService` | Sums the per-item totals up to the quote level. Easy to extend later (discounts, multi-currency, …). |
-| `ItemManagementService` | Wraps `create / update / destroy` of items in an explicit `ActiveRecord::Base.transaction`. Returns a structured result; controllers only translate it into a redirect. |
+| `QuoteValidationService` | `can_modify?` for draft vs validated, and `validation_message_for` for the correct flash after an update vs a transition to `validated`. |
+| `ItemManagementService` | Wraps `create / update / destroy` of items in an explicit `ActiveRecord::Base.transaction`. Returns a structured result; controllers only translate it into a redirect. On validation failure, `error` is **`ActiveModel` full messages** (partner-visible diagnostics). |
+
+**Quote totals** (`Total HT` / `TVA` / `TTC`) live on **`Quote#total_ht`**, `#total_vat`, `#total_ttc` — they sum `Item` line maths in memory (no duplicate service).
 
 ### Explicit transactions
 

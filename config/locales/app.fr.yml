@@ -1,0 +1,18 @@
+# Application strings (flash, services). ActiveRecord model/errors: see rails-i18n fr locale.
+fr:
+  flash:
+    quotes:
+      created: "Devis créé avec succès."
+      updated: "Devis mis à jour avec succès."
+      validated: "Devis validé avec succès."
+      deleted: "Devis supprimé avec succès."
+      cannot_modify_validated: "Impossible de modifier un devis validé."
+    items:
+      added: "Ligne ajoutée avec succès."
+      updated: "Ligne mise à jour avec succès."
+      deleted: "Ligne supprimée avec succès."
+      cannot_modify_validated_quote: "Impossible de modifier les lignes d'un devis validé."
+      delete_failed: "Impossible de supprimer la ligne."
+  errors:
+    quote:
+      cannot_modify_validated: "Impossible de modifier un devis validé."
