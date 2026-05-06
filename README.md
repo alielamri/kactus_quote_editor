@@ -57,6 +57,7 @@ Totals are computed when rendered (not stored columns):
 | CSS | Tailwind CSS v4 (`tailwindcss-rails`) + `app/assets/stylesheets/quotes.css` |
 | JavaScript | esbuild (`jsbundling-rails`), Stimulus + Turbo |
 | Tests | Minitest |
+| i18n | Default locale **French** (`:fr`); `rails-i18n` for ActiveRecord strings; app copy in `config/locales/app.{fr,en}.yml` |
 
 ---
 
@@ -157,7 +158,6 @@ app/
 ├── models/item.rb
 ├── services/
 │   ├── quote_validation_service.rb
-│   ├── quote_total_calculation_service.rb
 │   └── item_management_service.rb
 └── views/quotes/ … items/ … shared/
 ```
@@ -185,9 +185,6 @@ These are intentionally **not** in the current code — they would be the next
 items I'd shape with a PM in a real squad.
 
 ### Code quality / robustness
-- **Integration tests** at the controller level (`ActionDispatch::IntegrationTest`)
-  asserting the full request/response cycle, including the redirect-with-flash
-  on validated-quote attempts. Today only the unit layer is covered.
 - **System tests** (Capybara + Selenium) to lock the Stimulus interactions
   (toggling the new-item form, confirmation dialogs).
 - **`bullet`** gem in development to detect any future N+1 regression at the
@@ -210,8 +207,7 @@ items I'd shape with a PM in a real squad.
 ### Product
 - **Quote versioning UX** built on top of `paper_trail.reify`: show a history
   side-panel with diffs and a "view as of" mode.
-- **Currency / locale** — today the partner currency is implicit (`€`).
-  Externalizing it is mostly an `I18n` + a `currency` column on `Quote`.
+- **Currency** — partner currency is implicit (`€`); add a `currency` column and display rules when multi-currency is required.
 - **Authorization** — when users exist, partners must only see their own
   quotes; the `before_action :set_quote(_with_items)` is the natural place
   to scope by `current_user`.

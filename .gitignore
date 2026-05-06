@@ -4,6 +4,10 @@
 # belong in git's global ignore instead:
 # `$XDG_CONFIG_HOME/git/ignore` or `~/.config/git/ignore`
 
+# Editor / IDE (keep local tool settings out of the repo)
+/.cursor/
+/.vscode/
+
 # Ignore bundler config.
 /.bundle
 

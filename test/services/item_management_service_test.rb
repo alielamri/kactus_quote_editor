@@ -19,7 +19,7 @@ class ItemManagementServiceTest < ActiveSupport::TestCase
     result = ItemManagementService.create_item(@draft_quote, params)
 
     assert result[:success]
-    assert_equal "Item was successfully added.", result[:message]
+    assert_equal I18n.t("flash.items.added"), result[:message]
   end
 
   test "create_item fails for validated quote" do
@@ -27,15 +27,16 @@ class ItemManagementServiceTest < ActiveSupport::TestCase
     result = ItemManagementService.create_item(@validated_quote, params)
 
     assert_not result[:success]
-    assert_equal "Cannot modify items in a validated quote.", result[:error]
+    assert_equal I18n.t("flash.items.cannot_modify_validated_quote"), result[:error]
   end
 
-  test "create_item fails with invalid params" do
+  test "create_item fails with invalid params and surfaces model validation messages" do
     params = { name: "", quantity: -1, unit_price: 50.0, vat_rate: 20.0 }
     result = ItemManagementService.create_item(@draft_quote, params)
 
     assert_not result[:success]
-    assert_equal "Unable to add item.", result[:error]
+    assert result[:error].present?
+    assert_match(/nom|quantité|vide|doit|grand/i, result[:error].downcase)
   end
 
   test "create_item rolls back atomically on validation failure" do
@@ -54,7 +55,7 @@ class ItemManagementServiceTest < ActiveSupport::TestCase
     result = ItemManagementService.update_item(@item, params)
 
     assert result[:success]
-    assert_equal "Item was successfully updated.", result[:message]
+    assert_equal I18n.t("flash.items.updated"), result[:message]
     assert_equal "Updated Item", @item.reload.name
   end
 
@@ -74,15 +75,16 @@ class ItemManagementServiceTest < ActiveSupport::TestCase
     result = ItemManagementService.update_item(item, params)
 
     assert_not result[:success]
-    assert_equal "Cannot modify items in a validated quote.", result[:error]
+    assert_equal I18n.t("flash.items.cannot_modify_validated_quote"), result[:error]
   end
 
-  test "update_item fails with invalid params" do
+  test "update_item fails with invalid params and surfaces model validation messages" do
     params = { name: "", quantity: -1, unit_price: 75.0, vat_rate: 20.0 }
     result = ItemManagementService.update_item(@item, params)
 
     assert_not result[:success]
-    assert_equal "Unable to update item.", result[:error]
+    assert result[:error].present?
+    assert_match(/nom|quantité|vide|doit|grand/i, result[:error].downcase)
   end
 
   # Tests for destroy_item
@@ -90,7 +92,7 @@ class ItemManagementServiceTest < ActiveSupport::TestCase
     result = ItemManagementService.destroy_item(@item)
 
     assert result[:success]
-    assert_equal "Item was successfully deleted.", result[:message]
+    assert_equal I18n.t("flash.items.deleted"), result[:message]
     assert_not Item.exists?(@item.id)
   end
 
@@ -109,6 +111,6 @@ class ItemManagementServiceTest < ActiveSupport::TestCase
     result = ItemManagementService.destroy_item(item)
 
     assert_not result[:success]
-    assert_equal "Cannot modify items in a validated quote.", result[:error]
+    assert_equal I18n.t("flash.items.cannot_modify_validated_quote"), result[:error]
   end
 end

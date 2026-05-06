@@ -1,7 +1,7 @@
 class ItemManagementService
   class << self
     def create_item(quote, item_params)
-      return error_result("Cannot modify items in a validated quote.") unless quote.draft?
+      return error_result(I18n.t("flash.items.cannot_modify_validated_quote")) unless quote.draft?
 
       item = quote.items.build(item_params)
 
@@ -9,33 +9,33 @@ class ItemManagementService
         item.save!
       end
 
-      success_result("Item was successfully added.")
-    rescue ActiveRecord::RecordInvalid
-      error_result("Unable to add item.")
+      success_result(I18n.t("flash.items.added"))
+    rescue ActiveRecord::RecordInvalid => e
+      error_result(e.record.errors.full_messages.to_sentence)
     end
 
     def update_item(item, item_params)
-      return error_result("Cannot modify items in a validated quote.") unless item.quote.draft?
+      return error_result(I18n.t("flash.items.cannot_modify_validated_quote")) unless item.quote.draft?
 
       ActiveRecord::Base.transaction do
         item.update!(item_params)
       end
 
-      success_result("Item was successfully updated.")
-    rescue ActiveRecord::RecordInvalid
-      error_result("Unable to update item.")
+      success_result(I18n.t("flash.items.updated"))
+    rescue ActiveRecord::RecordInvalid => e
+      error_result(e.record.errors.full_messages.to_sentence)
     end
 
     def destroy_item(item)
-      return error_result("Cannot modify items in a validated quote.") unless item.quote.draft?
+      return error_result(I18n.t("flash.items.cannot_modify_validated_quote")) unless item.quote.draft?
 
       ActiveRecord::Base.transaction do
         item.destroy!
       end
 
-      success_result("Item was successfully deleted.")
+      success_result(I18n.t("flash.items.deleted"))
     rescue ActiveRecord::RecordNotDestroyed
-      error_result("Unable to delete item.")
+      error_result(I18n.t("flash.items.delete_failed"))
     end
 
     private

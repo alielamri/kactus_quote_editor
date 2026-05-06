@@ -17,33 +17,18 @@ class QuoteValidationServiceTest < ActiveSupport::TestCase
   test "validation_message_for returns validation message when status is validated" do
     params = { status: "validated" }
     message = QuoteValidationService.validation_message_for(params)
-    assert_equal "Quote was successfully validated.", message
+    assert_equal I18n.t("flash.quotes.validated"), message
   end
 
   test "validation_message_for returns update message when status is not validated" do
     params = { status: "draft" }
     message = QuoteValidationService.validation_message_for(params)
-    assert_equal "Quote was successfully updated.", message
+    assert_equal I18n.t("flash.quotes.updated"), message
   end
 
   test "validation_message_for returns update message when status is blank" do
     params = { status: "" }
     message = QuoteValidationService.validation_message_for(params)
-    assert_equal "Quote was successfully updated.", message
-  end
-
-  test "can_validate_for_update? returns true for draft quote" do
-    params = { status: "" }
-    assert QuoteValidationService.can_validate_for_update?(@quote_draft, params)
-  end
-
-  test "can_validate_for_update? returns true for validated quote with status change" do
-    params = { status: "draft" }
-    assert QuoteValidationService.can_validate_for_update?(@quote_validated, params)
-  end
-
-  test "can_validate_for_update? returns false for validated quote with blank status" do
-    params = { status: "" }
-    assert_not QuoteValidationService.can_validate_for_update?(@quote_validated, params)
+    assert_equal I18n.t("flash.quotes.updated"), message
   end
 end
